@@ -30,6 +30,9 @@
                         <a class="nav-link" href="barang.html"><i class="bi bi-box-seam-fill"></i> Data Barang/Jasa</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="pelanggan.html"><i class="bi bi-person-badge-fill"></i> Pelanggan Internal</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="laporan.html"><i class="bi bi-file-earmark-bar-graph-fill"></i> Laporan</a>
                     </li>
                 </ul>
@@ -88,55 +91,60 @@
             </div>
         </div>
 
-        <div class="modal fade" id="payment-modal" tabindex="-1">
-            <div id="piutang-customer-select" class="d-none">
-                <hr>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Pilih Pelanggan (untuk Piutang):</label>
-                    <select class="form-select" id="piutang-customer-id" required>
-                        <option value="">-- Pilih Pelanggan --</option>
-                        </select>
-                </div>
-            </div>
-            <div class="modal-dialog">
-                <div class="modal-content">
+        <div class="modal fade" id="payment-modal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg"> <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Konfirmasi Pembayaran</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
+                        </div>
                     <div class="modal-body">
-                        <h3 class="text-center">Total Tagihan:</h3>
-                        <h1 class="text-center fw-bold text-success mb-4" id="modal-total-payment">Rp 0</h1>
+                        <div class="d-grid gap-2 mb-4">
+                            <input type="radio" class="btn-check" name="payment-method" id="pay-cash" value="Cash" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="pay-cash"><i class="bi bi-wallet-fill"></i> Tunai (Cash)</label>
+
+                            <input type="radio" class="btn-check" name="payment-method" id="pay-qris" value="QRIS" autocomplete="off">
+                            <label class="btn btn-outline-info" for="pay-qris"><i class="bi bi-qr-code"></i> QRIS</label>
+                            
+                            <input type="radio" class="btn-check" name="payment-method" id="pay-piutang" value="Piutang" autocomplete="off">
+                            <label class="btn btn-outline-warning" for="pay-piutang"><i class="bi bi-person-exclamation"></i> Piutang Internal</label>
+                        </div>
                         
-                        <form id="payment-form">
+                        <div id="piutang-customer-select" class="d-none">
+                            <hr>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Pilih Metode Pembayaran:</label>
-                                <div class="d-grid gap-2">
-                                    <input type="radio" class="btn-check" name="payment-method" id="pay-cash" value="Cash" autocomplete="off" checked>
-                                    <label class="btn btn-outline-primary" for="pay-cash"><i class="bi bi-cash"></i> Tunai (Cash)</label>
-
-                                    <input type="radio" class="btn-check" name="payment-method" id="pay-qris" value="QRIS" autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="pay-qris"><i class="bi bi-qr-code"></i> QRIS</label>
-
-                                    <div class="d-grid gap-2">
-                                        <input type="radio" class="btn-check" name="payment-method" id="pay-piutang" value="Piutang" autocomplete="off">
-                                        <label class="btn btn-outline-warning" for="pay-piutang"><i class="bi bi-person-exclamation"></i> Piutang Internal</label>
-                                    </div>
-
-                                    <input type="radio" class="btn-check" name="payment-method" id="pay-transfer" value="Transfer" autocomplete="off">
-                                    <label class="btn btn-outline-primary" for="pay-transfer"><i class="bi bi-bank"></i> Transfer Bank</label>
-                                </div>
+                                <label class="form-label fw-bold">Pilih Pelanggan (untuk Piutang):</label>
+                                <select class="form-select" id="piutang-customer-id">
+                                    <option value="">-- Pilih Pelanggan --</option>
+                                    </select>
                             </div>
-                        </form>
+                        </div>
+                        </div>
                     </div>
-                    <div class="modal-footer d-grid">
-                        <button type="button" class="btn btn-primary btn-lg" id="btn-finish-transaction">Selesaikan Transaksi</button>
-                    </div>
-                </div>
             </div>
         </div>
 
     </main>
+
+    <div class="modal fade" id="qtyModal" tabindex="-1" aria-labelledby="qtyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qtyModalLabel">Tambahkan ke Keranjang</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Produk: <strong id="modal-product-name"></strong></p>
+                    <div class="mb-3">
+                        <label for="inputQty" class="form-label">Jumlah Beli</label>
+                        <input type="number" class="form-control" id="inputQty" value="1" min="1" required>
+                        <input type="hidden" id="selectedProductId">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="confirm-add-to-cart">Tambahkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

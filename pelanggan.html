@@ -45,73 +45,71 @@
     <main class="container-fluid mt-4">
         
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Laporan Penjualan</h1>
+            <h1 class="h3 mb-0 text-gray-800">Data Pelanggan Internal (Piutang)</h1>
         </div>
 
-        <ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="visual-tab" data-bs-toggle="tab" data-bs-target="#visual-content" type="button" role="tab">
-                    <i class="bi bi-graph-up"></i> Laporan Visual (Profit & Jasa)
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table-content" type="button" role="tab">
-                    <i class="bi bi-table"></i> Laporan Transaksi (Tabel)
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="reportTabsContent">
-            
-            <div class="tab-pane fade show active" id="visual-content" role="tabpanel">
-                <div class="row">
-                    <div class="col-lg-7 mb-4">
-                        <div class="card shadow">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 fw-bold text-primary">Grafik Profit/Loss (30 Hari Terakhir)</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="chart-area" style="height: 350px;">
-                                    <canvas id="dailyProfitChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary" id="cust-form-title">Tambah Pelanggan Baru</h6>
                     </div>
+                    <div class="card-body">
+                        <form id="customer-form">
+                            <input type="hidden" id="customer-id">
 
-                    <div class="col-lg-5 mb-4">
-                        <div class="card shadow">
-                            <div class="card-header py-3">
-                                <h6 class="m-0 fw-bold text-primary">Jasa/Project Paling Menguntungkan</h6>
+                            <div class="mb-3">
+                                <label for="customer-name" class="form-label">Nama Pelanggan & Keterangan</label>
+                                <input type="text" class="form-control" id="customer-name" placeholder="Cth: Siswa A - RPL" required>
                             </div>
-                            <div class="card-body">
-                                <div class="chart-pie" style="height: 350px;">
-                                    <canvas id="bestProjectChart"></canvas>
-                                </div>
+                            <div class="mb-3">
+                                <label for="customer-contact" class="form-label">Kontak</label>
+                                <input type="text" class="form-control" id="customer-contact" placeholder="Cth: 0812xxxxxx" required>
                             </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary" id="cust-submit-button">Simpan</button>
+                            </div>
+                        </form>
+                        
+                        <hr>
+                        <h6 class="fw-bold mt-4">Bayar Piutang (Pelunasan)</h6>
+                        <div id="payment-form-section">
+                            <div class="mb-3">
+                                <select class="form-select" id="pay-customer-id">
+                                    <option value="">Pilih Pelanggan</option>
+                                    </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="payment-amount" class="form-label">Jumlah Pembayaran</label>
+                                <input type="number" class="form-control" id="payment-amount" required placeholder="0">
+                                <small class="text-muted" id="current-debt-info">Saldo Piutang: Rp 0</small>
+                            </div>
+                            <button type="button" class="btn btn-success d-grid w-100" id="btn-pay-debt" disabled>
+                                Konfirmasi Pembayaran
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="table-content" role="tabpanel">
+            <div class="col-lg-8">
                 <div class="card shadow">
                     <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Semua Riwayat Transaksi</h6>
+                        <h6 class="m-0 fw-bold text-primary">Daftar Pelanggan & Saldo Piutang</h6>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped" id="transaction-table" width="100%">
+                            <table class="table table-bordered table-striped" id="customer-table" width="100%">
                                 <thead>
                                     <tr>
-                                        <th>ID Transaksi</th>
-                                        <th>Tanggal</th>
-                                        <th>Metode Bayar</th>
-                                        <th>Total Penjualan</th>
-                                        <th>Total Profit</th>
-                                        <th>Detail Item</th>
+                                        <th>Nama</th>
+                                        <th>Kontak</th>
+                                        <th>Saldo Piutang</th>
+                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="transaction-table-body">
+                                <tbody id="customer-table-body">
                                     </tbody>
                             </table>
                         </div>
@@ -128,12 +126,6 @@
     
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/app.js"></script>
-    
-    <script>
-        $(document).ready(function() {
-            // Muat semua data laporan saat halaman dibuka
-            loadReportData();
-        });
-    </script>
+
 </body>
 </html>

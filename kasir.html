@@ -10,141 +10,155 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="index.html">
-                <i class="bi bi-shop"></i> UPJ CASIR SYSTEM
+            <a class="navbar-brand fw-bolder d-flex justify-content-center align-items-center fs-4" href="index.html">
+                <img src="assets/img/logo.png" alt="Logo" style="height: 35px; margin-right: 5px;">
+                U-CASY
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item me-3">
+                        <a class="nav-link"  href="index.html">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="kasir.html"><i class="bi bi-calculator-fill"></i> Halaman Kasir</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link active" aria-current="page" href="kasir.html">Halaman Kasir</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="barang.html"><i class="bi bi-box-seam-fill"></i> Data Barang/Jasa</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="barang.html">Data Barang/Jasa</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="pelanggan.html"><i class="bi bi-person-badge-fill"></i> Pelanggan Internal</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="pelanggan.html">Pelanggan</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="laporan.html"><i class="bi bi-file-earmark-bar-graph-fill"></i> Laporan</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="laporan.html">Laporan</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="logout-button"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        <a class="btn btn-outline-light" href="#" id="logout-button">Logout</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main class="container-fluid mt-4">
+    <main class="container-fluid py-5 mt-5">
         
         <div class="row">
             <div class="col-lg-7">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Pilih Produk (Barang/Jasa)</h6>
+                <div class="card shadow-lg mb-4 border-start border-5 border-primary">
+                    <div class="card-header py-3 bg-light">
+                        <h5 class="m-0 fw-bold text-primary"><i class="bi bi-boxes me-2"></i> Pilih Produk (Barang/Jasa)</h5>
                     </div>
                     <div class="card-body">
-                        <input type="text" id="search-product" class="form-control mb-3" placeholder="Cari produk...">
-                        <div class="row" id="product-list-container" style="max-height: 70vh; overflow-y: auto;">
-                            </div>
+                        <input type="text" id="search-product" class="form-control mb-3 shadow-sm" placeholder="Cari produk...">
+                        <div class="row" id="product-list-container" style="max-height: 75vh; overflow-y: auto;">
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-5">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Keranjang</h6>
+                <div class="card shadow-lg mb-4 border-start border-5 border-success">
+                    <div class="card-header py-3 bg-light">
+                        <h5 class="m-0 fw-bold text-success"><i class="bi bi-cart-fill me-2"></i> Keranjang</h5>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush" id="cart-items-list">
-                            </ul>
-
-                        <hr>
-
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>Total (Rp)</strong>
-                                <strong id="cart-total">Rp 0</strong>
-                            </li>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush border-bottom" id="cart-items-list">
                         </ul>
+
+                        <div class="px-3 pt-3 pb-2">
+                            <hr class="mt-0">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between p-2 bg-light rounded">
+                                    <strong class="fs-5">Total (Rp)</strong>
+                                    <strong id="cart-total" class="fs-5 text-success">Rp 0</strong>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="card-footer d-grid gap-2">
-                        <button class="btn btn-success btn-lg" id="btn-show-payment" disabled>
+                    <div class="card-footer d-grid gap-2 border-top-0 pt-3 pb-3">
+                        <button class="btn btn-success btn-lg shadow-sm" id="btn-show-payment" disabled>
                             <i class="bi bi-credit-card-fill"></i> Lanjut ke Pembayaran
                         </button>
-                        <button class="btn btn-danger" id="btn-clear-cart">
+                        <button class="btn btn-outline-danger" id="btn-clear-cart">
                             <i class="bi bi-trash"></i> Kosongkan Keranjang
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <div class="modal fade" id="payment-modal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg"> <div class="modal-content">
-                    <div class="modal-header">
-                        </div>
+            <div class="modal-dialog modal-lg modal-dialog-centered"> <div class="modal-content">
+                    <div class="modal-header bg-primary text-white"> <h5 class="modal-title fw-bold" id="paymentModalLabel">Selesaikan Transaksi - Total: <span id="modal-total-payment" class="text-warning">Rp 0</span></h5> <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button> </div>
                     <div class="modal-body">
-                        <div class="d-grid gap-2 mb-4">
-                            <input type="radio" class="btn-check" name="payment-method" id="pay-cash" value="Cash" autocomplete="off" checked>
-                            <label class="btn btn-outline-primary" for="pay-cash"><i class="bi bi-wallet-fill"></i> Tunai (Cash)</label>
-
-                            <input type="radio" class="btn-check" name="payment-method" id="pay-qris" value="QRIS" autocomplete="off">
-                            <label class="btn btn-outline-info" for="pay-qris"><i class="bi bi-qr-code"></i> QRIS</label>
+                        <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-wallet2 me-2"></i> Pilih Metode Pembayaran</h6>
+                        <div class="d-grid gap-3 mb-4"> <input type="radio" class="btn-check" name="payment-method" id="pay-cash" value="Cash" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary btn-lg" for="pay-cash"><i class="bi bi-wallet-fill me-2"></i> **Tunai (Cash)**</label>
                             
                             <input type="radio" class="btn-check" name="payment-method" id="pay-piutang" value="Piutang" autocomplete="off">
-                            <label class="btn btn-outline-warning" for="pay-piutang"><i class="bi bi-person-exclamation"></i> Piutang Internal</label>
+                            <label class="btn btn-outline-danger btn-lg" for="pay-piutang"><i class="bi bi-person-exclamation me-2"></i> **Hutang / Piutang Internal**</label>
                         </div>
                         
-                        <div id="piutang-customer-select" class="d-none">
-                            <hr>
+                        <div id="piutang-customer-select" class="d-none border border-danger p-4 rounded shadow-sm"> <h6 class="fw-bold text-danger mb-3"><i class="bi bi-info-circle-fill me-2"></i> Opsi Piutang Internal</h6>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Pilih Pelanggan (untuk Piutang):</label>
+                                <label class="form-label fw-semibold">Pilih Pelanggan Existing:</label>
                                 <select class="form-select" id="piutang-customer-id">
                                     <option value="">-- Pilih Pelanggan --</option>
-                                    </select>
+                                </select>
+                            </div>
+                            <div class="mb-3 border-top pt-3">
+                                <label class="form-label fw-semibold">Atau, Input Pelanggan Baru (Hutang):</label>
+                                <input type="text" class="form-control mb-2" id="new-customer-name" placeholder="Nama Pelanggan Baru">
+                                <input type="tel" class="form-control" id="new-customer-phone" placeholder="No. Telepon">
+                                <button id="btn-save-new-customer" class="btn btn-sm btn-info mt-2 w-100 shadow-sm">Simpan Pelanggan Baru</button>
                             </div>
                         </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button type="button" class="btn btn-success" id="btn-finish-transaction"><i class="bi bi-check-circle-fill me-1"></i> Selesaikan Transaksi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="qtyModal" tabindex="-1" aria-labelledby="qtyModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered"> <div class="modal-content">
+                    <div class="modal-header bg-info text-white"> <h5 class="modal-title fw-bold" id="qtyModalLabel"><i class="bi bi-input-cursor me-2"></i> Tentukan Jumlah Beli</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="fs-5">Produk: <strong id="modal-product-name" class="text-primary"></strong></p>
+                        <div class="mb-3">
+                            <label for="inputQty" class="form-label fw-semibold">Jumlah Beli</label>
+                            <div class="input-group input-group-lg shadow-sm"> <button class="btn btn-outline-secondary" type="button" id="btn-minus-qty">-</button>
+                                <input type="number" class="form-control text-center fw-bold" id="inputQty" value="1" min="1" required>
+                                <button class="btn btn-outline-secondary" type="button" id="btn-plus-qty">+</button>
+                            </div>
+                            <input type="hidden" id="selectedProductId">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="inputNote" class="form-label fw-semibold">Catatan Pesanan (Opsional)</label>
+                            <textarea class="form-control shadow-sm" id="inputNote" rows="2" placeholder="Contoh: Tanpa gula, warna merah, dll."></textarea>
                         </div>
                     </div>
-            </div>
-        </div>
-
-    </main>
-
-    <div class="modal fade" id="qtyModal" tabindex="-1" aria-labelledby="qtyModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="qtyModalLabel">Tambahkan ke Keranjang</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Produk: <strong id="modal-product-name"></strong></p>
-                    <div class="mb-3">
-                        <label for="inputQty" class="form-label">Jumlah Beli</label>
-                        <input type="number" class="form-control" id="inputQty" value="1" min="1" required>
-                        <input type="hidden" id="selectedProductId">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-primary" id="confirm-add-to-cart"><i class="bi bi-cart-plus-fill me-1"></i> Konfirmasi Jumlah</button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" id="confirm-add-to-cart">Tambahkan</button>
-                </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -188,6 +202,48 @@
                     $('#piutang-customer-id').val('');
                 }
             });
+
+            // Selesaikan transaksi
+            $('#btn-finish-transaction').on('click', handleFinishTransaction);
+
+            // Ganti event listener untuk tombol Tambahkan di modal QTY
+            $('#confirm-add-to-cart').on('click', confirmAddToCart);
+            
+            // Event listener untuk tombol Plus dan Minus di modal QTY
+            $('#btn-plus-qty').on('click', function() {
+                const qtyInput = $('#inputQty');
+                qtyInput.val(parseInt(qtyInput.val()) + 1);
+            });
+            $('#btn-minus-qty').on('click', function() {
+                const qtyInput = $('#inputQty');
+                const currentQty = parseInt(qtyInput.val());
+                if (currentQty > 1) { // Minimal 1
+                    qtyInput.val(currentQty - 1);
+                }
+            });
+            
+            // Tampilkan modal pembayaran (Perbarui modal title dengan total)
+            $('#btn-show-payment').on('click', function() {
+                const totalText = $('#cart-total').text();
+                $('#modal-total-payment').text(totalText);
+                $('#payment-modal').modal('show');
+            });
+            
+            // MUAT DATA PELANGGAN UNTUK PIUTANG
+            loadCustomersForPiutang();
+
+            // Tampilkan/Sembunyikan form pelanggan berdasarkan metode pembayaran
+            $('input[name="payment-method"]').on('change', function() {
+                if ($(this).val() === 'Piutang') {
+                    $('#piutang-customer-select').removeClass('d-none');
+                } else {
+                    $('#piutang-customer-select').addClass('d-none');
+                    $('#piutang-customer-id').val('');
+                }
+            });
+            
+            // Tambahkan event listener untuk menyimpan pelanggan baru
+            $('#btn-save-new-customer').on('click', handleSaveNewCustomer);
 
             // Selesaikan transaksi
             $('#btn-finish-transaction').on('click', handleFinishTransaction);

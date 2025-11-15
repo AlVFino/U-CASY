@@ -10,63 +10,64 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="index.html">
-                <i class="bi bi-shop"></i> UPJ CASIR SYSTEM
+            <a class="navbar-brand fw-bolder d-flex justify-content-center align-items-center fs-4" href="index.html">
+                <img src="assets/img/logo.png" alt="Logo" style="height: 35px; margin-right: 5px;">
+                U-CASY
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html"><i class="bi bi-grid-fill"></i> Dashboard</a>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item me-3">
+                        <a class="nav-link"  href="index.html">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="kasir.html"><i class="bi bi-calculator-fill"></i> Halaman Kasir</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="kasir.html">Halaman Kasir</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="barang.html"><i class="bi bi-box-seam-fill"></i> Data Barang/Jasa</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link active" aria-current="page" href="barang.html">Data Barang/Jasa</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="pelanggan.html"><i class="bi bi-person-badge-fill"></i> Pelanggan Internal</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="pelanggan.html">Pelanggan</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="laporan.html"><i class="bi bi-file-earmark-bar-graph-fill"></i> Laporan</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="laporan.html">Laporan</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="logout-button"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        <a class="btn btn-outline-light" href="#" id="logout-button">Logout</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <main class="container-fluid mt-4">
+    <main class="container-fluid py-5 mt-5">
         
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Data Barang & Jasa (Produk UPJ)</h1>
+            <h1 class="h2 mb-0 text-dark fw-light">📦 Data Barang & Jasa (Produk UPJ)</h1>
         </div>
 
         <div class="row">
             <div class="col-lg-4 mb-4">
-                <div class="card shadow">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary" id="form-title">Tambah Barang/Jasa Baru</h6>
+                <div class="card shadow-lg border-start border-5 border-info h-100">
+                    <div class="card-header py-3 bg-light">
+                        <h6 class="m-0 fw-bold text-info" id="form-title"><i class="bi bi-plus-circle-fill me-2"></i> Tambah Barang/Jasa Baru</h6>
                     </div>
                     <div class="card-body">
                         <form id="product-form">
                             <input type="hidden" id="product-id">
 
                             <div class="mb-3">
-                                <label for="product-name" class="form-label">Nama Barang/Jasa</label>
+                                <label for="product-name" class="form-label fw-semibold">Nama Barang/Jasa</label>
                                 <input type="text" class="form-control" id="product-name" placeholder="Cth: Jasa Servis PC, Kopi Susu" required>
                             </div>
                             <div class="mb-3">
-                                <label for="product-type" class="form-label">Tipe Produk</label>
+                                <label for="product-type" class="form-label fw-semibold">Tipe Produk</label>
                                 <div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="product-type" id="type-barang" value="barang" checked>
@@ -79,16 +80,22 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label for="product-modal" class="form-label">Harga Modal (HPP)</label>
+                                <label for="product-modal" class="form-label fw-semibold">Harga Modal (HPP)</label>
                                 <input type="number" class="form-control" id="product-modal" placeholder="Cth: 10000" required>
                             </div>
                             <div class="mb-3">
-                                <label for="product-price" class="form-label">Harga Jual</label>
+                                <label for="product-price" class="form-label fw-semibold">Harga Jual</label>
                                 <input type="number" class="form-control" id="product-price" placeholder="Cth: 15000" required>
                             </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary" id="submit-button">Simpan</button>
-                                <button type="button" class="btn btn-secondary d-none" id="cancel-edit-button">Batal Edit</button>
+
+                            <div class="mb-3" id="stock-input-group">
+                                <label for="product-stock" class="form-label fw-semibold">Stok Saat Ini</label>
+                                <input type="number" class="form-control" id="product-stock" placeholder="Cth: 50" value="0">
+                                <small class="form-text text-muted">Isi 0 jika ini Jasa/Project.</small>
+                            </div>
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg shadow-sm" id="submit-button"><i class="bi bi-save-fill me-1"></i> Simpan</button>
+                                <button type="button" class="btn btn-outline-secondary d-none" id="cancel-edit-button"><i class="bi bi-x-circle-fill me-1"></i> Batal Edit</button>
                             </div>
                         </form>
                     </div>
@@ -96,25 +103,44 @@
             </div>
 
             <div class="col-lg-8">
-                <div class="card shadow">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 fw-bold text-primary">Daftar Produk Tersedia</h6>
+                <div class="row mb-4 bg-light p-3 rounded shadow-sm">
+                    <div class="col-md-6">
+                        <label for="filter-name" class="form-label fw-semibold"><i class="bi bi-search me-1"></i> Cari Nama Produk:</label>
+                        <input type="text" class="form-control" id="filter-name" placeholder="Ketik nama produk...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filter-type" class="form-label fw-semibold"><i class="bi bi-funnel-fill me-1"></i> Filter Tipe:</label>
+                        <select class="form-select" id="filter-type">
+                            <option value="">Semua Tipe</option>
+                            <option value="barang">Barang</option>
+                            <option value="jasa">Jasa/Project</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary w-100" type="button"><i class="bi bi-arrow-clockwise"></i> Reset</button>
+                    </div>
+                </div>
+                
+                <div class="card shadow-lg">
+                    <div class="card-header py-3 bg-light">
+                        <h6 class="m-0 fw-bold text-primary"><i class="bi bi-table me-2"></i> Daftar Produk Tersedia</h6>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped" id="product-table" width="100%">
+                            <table class="table table-bordered table-striped table-hover" id="product-table" width="100%">
                                 <thead>
-                                    <tr>
+                                    <tr class="bg-light">
                                         <th>ID</th>
                                         <th>Nama Barang/Jasa</th>
                                         <th>Tipe</th>
+                                        <th>Stok</th>
                                         <th>Harga Modal</th>
                                         <th>Harga Jual</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="product-table-body">
-                                    </tbody>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -123,6 +149,8 @@
         </div>
 
     </main>
+
+    
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -145,6 +173,18 @@
             // Tangani klik tombol "Edit" dan "Delete" di tabel (event delegation)
             $('#product-table-body').on('click', '.btn-edit', handleEditProduct);
             $('#product-table-body').on('click', '.btn-delete', handleDeleteProduct);
+
+            // Tangani perubahan pada input nama dan select tipe (Filter)
+            $('#filter-name, #filter-type').on('input change', function() {
+                loadProductTable();
+            });
+
+            // Tangani tombol Reset Filter
+            $('#reset-filter-button').on('click', function() {
+                $('#filter-name').val('');
+                $('#filter-type').val('');
+                loadProductTable(); // Muat ulang tabel setelah reset
+            });
         });
     </script>
 </body>

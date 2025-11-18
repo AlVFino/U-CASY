@@ -313,354 +313,362 @@ function handleDeleteProduct(event) {
 }
 
 // ===================================
-// FUNGSI UNTUK HALAMAN KASIR (kasir.html)
-// ===================================
-
-// --- FUNGSI BARU UNTUK MEMBUAT ID BARU ---
-function getNewCustomerId() {
-    const customers = JSON.parse(localStorage.getItem('customers')) || [];
-    return customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
-}
-
-// Muat daftar produk ke halaman kasir
-function loadProductsForCashier() {
-    const products = JSON.parse(localStorage.getItem('products')) || [];
-    const container = $('#product-list-container');
-    container.empty();
-
-    if (products.length === 0) {
-        container.html('<p class="text-center">Belum ada produk. Silakan tambah di halaman Data Barang/Jasa.</p>');
-        return;
+    // LOGIKA UTAMA HALAMAN KASIR
+    // ===================================
+    
+    // Pastikan fungsi formatRupiah ada. Jika tidak ada di app.js, kita buat fallback
+    if (typeof formatRupiah !== 'function') {
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
     }
 
-    products.forEach(product => {
-        const card = `
-            <div class="col-md-4 col-6 mb-3 product-item-card" 
-                 data-id="${product.id}" 
-                 data-nama="${product.nama}" 
-                 data-harga="${product.harga}" 
-                 data-modal="${product.modal}" 
-                 data-tipe="${product.tipe}"
-                 data-catatan=""> <div class="card h-100 product-card shadow-sm border-${product.tipe === 'jasa' ? 'info' : 'info'}">
-                    <div class="card-body text-center d-flex flex-column justify-content-center p-2">
-                        <h5 class="card-title fs-6 mb-1">${product.nama}</h5>
-                        <p class="card-text fw-bold text-primary mb-0">${formatRupiah(product.harga)}</p>
+    // Variable global keranjang
+    
+
+    // 1. FUNGSI HELPER & LOAD DATA
+    function getNewCustomerId() {
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        return customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
+    }
+
+    function loadProductsForCashier() {
+        const products = JSON.parse(localStorage.getItem('products')) || [];
+        const container = $('#product-list-container');
+        container.empty();
+
+        if (products.length === 0) {
+            container.html('<p class="text-center">Belum ada produk.</p>');
+            return;
+        }
+
+        products.forEach(product => {
+            const card = `
+                <div class="col-md-4 col-6 mb-3 product-item-card" 
+                     data-id="${product.id}" 
+                     data-nama="${product.nama}" 
+                     data-harga="${product.harga}" 
+                     data-modal="${product.modal}" 
+                     data-tipe="${product.tipe}">
+                    <div class="card h-100 product-card shadow-sm border-info">
+                        <div class="card-body text-center d-flex flex-column justify-content-center p-2">
+                            <h5 class="card-title fs-6 mb-1">${product.nama}</h5>
+                            <p class="card-text fw-bold text-primary mb-0">${formatRupiah(product.harga)}</p>
+                        </div>
                     </div>
-                </div>
-            </div>
-        `;
-        container.append(card);
-    });
-}
+                </div>`;
+            container.append(card);
+        });
+    }
 
-// Muat daftar pelanggan ke select Piutang di Modal Kasir
-function loadCustomersForPiutang() {
-    const customers = JSON.parse(localStorage.getItem('customers')) || [];
-    const select = $('#piutang-customer-id');
-    select.find('option:not(:first)').remove();
-
-    if (customers.length === 0) {
-        select.append(`<option value="" disabled>Tidak ada pelanggan Piutang</option>`);
-    } else {
+    function loadCustomersForPiutang() {
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const select = $('#piutang-customer-id');
+        select.find('option:not(:first)').remove();
         customers.forEach(cust => {
             select.append(`<option value="${cust.id}">${cust.nama}</option>`);
         });
     }
-}
 
-// Fungsi filter produk di halaman kasir
-function filterProducts() {
-    const query = $('#search-product').val().toLowerCase();
-    $('.product-item-card').each(function() {
-        const nama = $(this).data('nama').toLowerCase();
-        if (nama.includes(query)) {
-            $(this).show();
-        } else {
-            $(this).hide();
-        }
-    });
-}
-
-// Fungsi untuk merender (menampilkan) isi keranjang
-function renderCart() {
-    const cartList = $('#cart-items-list');
-    cartList.empty();
-    
-    let total = 0;
-
-    if (cart.length === 0) {
-        cartList.append('<li class="list-group-item text-center text-muted">Keranjang kosong</li>');
-        $('#btn-show-payment').prop('disabled', true);
-    } else {
-        cart.forEach(item => {
-            const itemTotal = item.harga * item.qty;
-            total += itemTotal;
-            
-            // Tampilkan catatan jika ada
-            const noteDisplay = item.catatan ? `<small class="text-warning d-block">Catatan: ${item.catatan}</small>` : '';
-
-            const itemElement = `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="my-0">${item.nama}</h6>
-                        <small class="text-muted">${formatRupiah(item.harga)} x ${item.qty}</small>
-                        ${noteDisplay} </div>
-                    <span class="text-muted">${formatRupiah(itemTotal)}</span>
-                    <button class="btn btn-sm btn-outline-danger btn-remove-cart-item" data-id="${item.id}">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </li>
-            `;
-            cartList.append(itemElement);
+    function filterProducts() {
+        const query = $('#search-product').val().toLowerCase();
+        $('.product-item-card').each(function() {
+            const nama = $(this).data('nama').toLowerCase();
+            $(this).toggle(nama.includes(query));
         });
-        $('#btn-show-payment').prop('disabled', false);
     }
-    
-    $('#cart-total').text(formatRupiah(total));
-    $('#modal-total-payment').text(formatRupiah(total));
-}
 
-// Fungsi saat produk di-klik (HANYA MENGISI MODAL QTY)
-function handleAddToCart(event) {
-    const card = $(event.currentTarget);
-    const productId = card.data('id');
-    const productName = card.data('nama');
-    
-    // Cari apakah item sudah ada di keranjang
-    const existingItem = cart.find(item => item.id == productId);
+    // 2. FUNGSI KERANJANG
+    function renderCart() {
+        const cartList = $('#cart-items-list');
+        cartList.empty();
+        let total = 0;
 
-    $('#selectedProductId').val(productId);
-    $('#modal-product-name').text(productName);
-    
-    // Isi Qty dengan nilai 1 jika belum ada, atau Qty saat ini jika sudah ada
-    $('#inputQty').val(existingItem ? existingItem.qty : 1); 
-    
-    // Isi Catatan dengan catatan yang sudah ada, atau kosongkan jika item baru
-    $('#inputNote').val(existingItem && existingItem.catatan ? existingItem.catatan : '');
-
-    $('#qtyModal').modal('show');
-}
-
-// Fungsi untuk menghapus item dari keranjang
-function handleRemoveFromCart(event) {
-    const id = $(event.currentTarget).data('id');
-    const itemIndex = cart.findIndex(item => item.id == id);
-
-    if (itemIndex > -1) {
-        if (cart[itemIndex].qty > 1) {
-            cart[itemIndex].qty--;
+        if (cart.length === 0) {
+            cartList.append('<li class="list-group-item text-center text-muted">Keranjang kosong</li>');
+            $('#btn-show-payment').prop('disabled', true);
         } else {
-            cart.splice(itemIndex, 1);
+            cart.forEach(item => {
+                const itemTotal = item.harga * item.qty;
+                total += itemTotal;
+                const noteDisplay = item.catatan ? `<small class="text-warning d-block">Catatan: ${item.catatan}</small>` : '';
+
+                cartList.append(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="my-0">${item.nama}</h6>
+                            <small class="text-muted">${formatRupiah(item.harga)} x ${item.qty}</small>
+                            ${noteDisplay}
+                        </div>
+                        <span class="text-muted">${formatRupiah(itemTotal)}</span>
+                        <button class="btn btn-sm btn-outline-danger btn-remove-cart-item" data-id="${item.id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </li>
+                `);
+            });
+            $('#btn-show-payment').prop('disabled', false);
         }
-    }
-    renderCart();
-}
-
-// Fungsi untuk memproses Qty dan Catatan dari modal ke keranjang
-function confirmAddToCart() {
-    const productId = parseInt($('#selectedProductId').val());
-    const qty = parseInt($('#inputQty').val());
-    const note = $('#inputNote').val().trim(); // Ambil nilai catatan
-
-    if (isNaN(qty) || qty < 1) {
-        alert("Jumlah harus minimal 1.");
-        return;
+        $('#cart-total').text(formatRupiah(total));
+        $('#modal-total-payment').text(formatRupiah(total));
     }
 
-    const allProducts = JSON.parse(localStorage.getItem('products')) || [];
-    const product = allProducts.find(p => p.id === productId);
+    function handleAddToCart(event) {
+        const card = $(event.currentTarget);
+        const productId = card.data('id');
+        const existingItem = cart.find(item => item.id == productId);
 
-    if (!product) {
-        alert("Produk tidak ditemukan.");
+        $('#selectedProductId').val(productId);
+        $('#modal-product-name').text(card.data('nama'));
+        $('#inputQty').val(existingItem ? existingItem.qty : 1);
+        $('#inputNote').val(existingItem ? existingItem.catatan : '');
+        $('#qtyModal').modal('show');
+    }
+
+    function confirmAddToCart() {
+        const productId = parseInt($('#selectedProductId').val());
+        const qty = parseInt($('#inputQty').val());
+        const note = $('#inputNote').val().trim();
+
+        if (qty < 1) return alert("Jumlah minimal 1");
+
+        const allProducts = JSON.parse(localStorage.getItem('products')) || [];
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) return;
+
+        const itemIndex = cart.findIndex(item => item.id === productId);
+        if (itemIndex > -1) {
+            cart[itemIndex].qty = qty;
+            cart[itemIndex].catatan = note;
+        } else {
+            cart.push({ ...product, qty: qty, catatan: note });
+        }
+        renderCart();
         $('#qtyModal').modal('hide');
-        return;
     }
 
-    const itemIndex = cart.findIndex(item => item.id === productId);
-
-    if (itemIndex > -1) {
-        // Jika produk sudah ada, update Qty dan Catatan
-        cart[itemIndex].qty = qty;
-        cart[itemIndex].catatan = note; // Update catatan
-    } else {
-        // Jika produk belum ada, tambahkan sebagai item baru
-        cart.push({
-            id: product.id,
-            nama: product.nama,
-            harga: product.harga,
-            modal: product.modal,
-            tipe: product.tipe,
-            qty: qty,
-            catatan: note // Tambahkan catatan
-        });
-    }
-
-    // Jika qty diubah menjadi 0 di modal, hapus item dari keranjang
-    if (qty === 0) {
-        cart = cart.filter(item => item.id !== productId);
-    }
-
-    renderCart();
-    $('#qtyModal').modal('hide');
-}
-
-// Fungsi untuk mengosongkan keranjang
-function clearCart() {
-    if (confirm('Anda yakin ingin mengosongkan keranjang?')) {
-        cart = [];
+    function handleRemoveFromCart(event) {
+        const id = $(event.currentTarget).data('id');
+        cart = cart.filter(item => item.id != id);
         renderCart();
     }
-}
 
-// Fungsi untuk menyelesaikan transaksi (termasuk Piutang)
-
-function handleFinishTransaction() {
-    if (cart.length === 0) {
-        return;
-    }
-
-    const paymentMethod = $('input[name="payment-method"]:checked').val();
-    let customerId = null;
-
-    // --- LOGIKA PIUTANG ---
-    if (paymentMethod === 'Piutang') {
-        customerId = $('#piutang-customer-id').val();
-        if (!customerId) {
-            alert('Anda memilih Hutang, mohon pilih Pelanggan Internal atau buat yang baru!');
-            return;
+    function clearCart() {
+        if (confirm('Kosongkan keranjang?')) {
+            cart = [];
+            renderCart();
         }
-        customerId = parseInt(customerId);
     }
-    // --- AKHIR LOGIKA PIUTANG ---
 
-    let products = JSON.parse(localStorage.getItem('products')) || [];
-    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-    
-    let total = 0;
-    let totalProfit = 0;
+    // 3. FUNGSI TRANSAKSI & PRINT
+    function printTransaction(transaction) {
+        const date = new Date(transaction.tanggal).toLocaleString('id-ID');
+        $('#struk-tanggal').text(date);
+        $('#struk-id').text(transaction.id);
+        $('#struk-metode').text(transaction.metode);
+        $('#struk-total-bayar').text(formatRupiah(transaction.total));
 
-    // ===================================
-    // 💡 LOGIKA PENGURANGAN STOK (BARU) 💡
-    // ===================================
-    
-    let isStockAdequate = true;
-    const itemsToUpdate = [];
+        const listContainer = $('#struk-items-list');
+        listContainer.empty();
+        transaction.items.forEach(item => {
+            listContainer.append(`
+                <div style="margin-bottom: 4px;">
+                    <div>${item.nama}</div>
+                    <div class="d-flex justify-content-between">
+                        <small>${item.qty} x ${formatRupiah(item.harga)}</small>
+                        <span>${formatRupiah(item.qty * item.harga)}</span>
+                    </div>
+                    ${item.catatan ? `<small style="font-style:italic;">(${item.catatan})</small>` : ''}
+                </div>
+            `);
+        });
 
-    // 1. Cek ketersediaan stok & Hitung Total
-    cart.forEach(cartItem => {
-        const productIndex = products.findIndex(p => p.id === cartItem.id);
+        if (transaction.customerId) {
+            const customers = JSON.parse(localStorage.getItem('customers')) || [];
+            const cust = customers.find(c => c.id == transaction.customerId);
+            $('#struk-pelanggan').text(cust ? cust.nama : 'Umum');
+            $('#struk-pelanggan-row').show();
+        } else {
+            $('#struk-pelanggan-row').hide();
+        }
+
+        if (transaction.metode === 'Cash') {
+            $('#struk-cash-info').show();
+            $('#struk-bayar').text(formatRupiah(transaction.bayar || 0));
+            $('#struk-kembali').text(formatRupiah(transaction.kembalian || 0));
+        } else {
+            $('#struk-cash-info').hide();
+        }
+
+        window.print();
+    }
+
+    function handleFinishTransaction() {
+        if (cart.length === 0) return;
+
+        const paymentMethod = $('input[name="payment-method"]:checked').val();
+        let customerId = null;
         
-        // Cek apakah produk ditemukan di master data
-        if (productIndex !== -1) {
-            // Hitung total dan profit
-            total += cartItem.harga * cartItem.qty;
-            totalProfit += (cartItem.harga - cartItem.modal) * cartItem.qty;
+        // Hitung Total
+        let total = 0;
+        let totalProfit = 0;
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        
+        cart.forEach(item => {
+            total += item.harga * item.qty;
+            totalProfit += (item.harga - item.modal) * item.qty;
+        });
 
-            // Jika Tipe Barang, lakukan cek stok
-            if (products[productIndex].tipe === 'barang') {
+        // Validasi Cash
+        let nominalBayar = 0;
+        let kembalian = 0;
+        if (paymentMethod === 'Cash') {
+            nominalBayar = parseInt($('#input-bayar').val()) || 0;
+            if (nominalBayar < total) {
+                alert(`Uang kurang! Total: ${formatRupiah(total)}, Bayar: ${formatRupiah(nominalBayar)}`);
+                return;
+            }
+            kembalian = nominalBayar - total;
+        }
+
+        // Validasi Piutang
+        if (paymentMethod === 'Piutang') {
+            customerId = $('#piutang-customer-id').val();
+            if (!customerId) {
+                alert('Pilih pelanggan untuk Piutang!');
+                return;
+            }
+            customerId = parseInt(customerId);
+        }
+
+        // Cek Stok
+        let isStockAdequate = true;
+        const itemsToUpdate = [];
+        cart.forEach(cartItem => {
+            const productIndex = products.findIndex(p => p.id === cartItem.id);
+            if (productIndex !== -1 && products[productIndex].tipe === 'barang') {
                 if (products[productIndex].stok < cartItem.qty) {
                     isStockAdequate = false;
-                    alert(`Stok ${products[productIndex].nama} tidak cukup! Stok tersedia: ${products[productIndex].stok}, Diminta: ${cartItem.qty}`);
+                    alert(`Stok ${products[productIndex].nama} tidak cukup!`);
                 }
                 itemsToUpdate.push({ index: productIndex, qty: cartItem.qty });
             }
+        });
+
+        if (!isStockAdequate) return;
+
+        // Eksekusi
+        itemsToUpdate.forEach(item => products[item.index].stok -= item.qty);
+
+        const newTransaction = {
+            id: `TRX-${new Date().getTime()}`,
+            tanggal: new Date().toISOString(),
+            metode: paymentMethod,
+            items: cart,
+            total: total,
+            totalProfit: totalProfit,
+            customerId: customerId,
+            bayar: nominalBayar,
+            kembalian: kembalian
+        };
+
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        transactions.push(newTransaction);
+        localStorage.setItem('products', JSON.stringify(products));
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+
+        if (paymentMethod === 'Piutang' && customerId) {
+            let customers = JSON.parse(localStorage.getItem('customers')) || [];
+            const idx = customers.findIndex(c => c.id === customerId);
+            if (idx !== -1) {
+                customers[idx].saldoPiutang += total;
+                localStorage.setItem('customers', JSON.stringify(customers));
+            }
         }
-    });
 
-    if (!isStockAdequate) {
-        return; // Batalkan transaksi jika stok tidak cukup
+        $('#payment-modal').modal('hide');
+
+        // Confirm Print & Reload
+        if (confirm(`Transaksi Berhasil!\nKembalian: ${formatRupiah(kembalian)}\n\nCetak Struk?`)) {
+            printTransaction(newTransaction);
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            window.location.reload();
+        }
     }
-    
-    // 2. Kurangi Stok (hanya jika semua cek stok lulus)
-    itemsToUpdate.forEach(item => {
-        products[item.index].stok -= item.qty;
-    });
 
-    // ===================================
-    // ✍️ BUAT TRANSAKSI BARU ✍️
-    // ===================================
-    
-    const newTransaction = {
-        id: `TRX-${new Date().getTime()}`,
-        tanggal: new Date().toISOString(),
-        metode: paymentMethod,
-        items: cart.map(item => ({ // Pastikan catatan disertakan di item transaksi
-            id: item.id,
-            nama: item.nama,
-            harga: item.harga,
-            modal: item.modal,
-            qty: item.qty,
-            catatan: item.catatan || '' // Menyimpan catatan
-        })),
-        total: total,
-        totalProfit: totalProfit,
-        customerId: customerId || null 
-    };
+    function handleSaveNewCustomer() {
+        const name = $('#new-customer-name').val().trim();
+        const phone = $('#new-customer-phone').val().trim();
+        if (!name || !phone) return alert('Isi nama & telepon');
 
-    transactions.push(newTransaction);
-    
-    // Simpan semua data yang berubah
-    localStorage.setItem('products', JSON.stringify(products)); // Update Stok Produk
-    localStorage.setItem('transactions', JSON.stringify(transactions)); // Simpan Transaksi Baru
-
-    // --- UPDATE SALDO PIUTANG PELANGGAN ---
-    if (paymentMethod === 'Piutang' && customerId) {
         let customers = JSON.parse(localStorage.getItem('customers')) || [];
-        const customerIndex = customers.findIndex(c => c.id === customerId);
-
-        if (customerIndex !== -1) {
-            customers[customerIndex].saldoPiutang += total;
-            localStorage.setItem('customers', JSON.stringify(customers));
-        }
-    }
-    // --- AKHIR UPDATE SALDO PIUTANG ---
-
-    // Reset UI dan notifikasi
-    cart = [];
-    // RenderCart dipanggil di awal $(document).ready() dan harusnya mereset keranjang
-    // Namun karena kita akan refresh, pastikan modal ditutup
-    $('#payment-modal').modal('hide');
-    
-    alert(`Transaksi ${newTransaction.id} berhasil disimpan! Halaman akan dimuat ulang untuk me-refresh data dan stok.`);
-    
-    // ⚡ REFRESH HALAMAN ⚡
-    window.location.reload(); 
-}
-
-// Fungsi untuk menyimpan pelanggan baru (untuk Piutang)
-function handleSaveNewCustomer() {
-    const name = $('#new-customer-name').val().trim();
-    const phone = $('#new-customer-phone').val().trim();
-
-    if (!name || !phone) {
-        alert('Nama dan Nomor Telepon pelanggan baru wajib diisi.');
-        return;
+        const newId = getNewCustomerId();
+        customers.push({ id: newId, nama: name, telp: phone, saldoPiutang: 0 });
+        localStorage.setItem('customers', JSON.stringify(customers));
+        
+        alert('Pelanggan disimpan');
+        loadCustomersForPiutang();
+        $('#piutang-customer-id').val(newId);
+        $('#new-customer-name').val(''); $('#new-customer-phone').val('');
     }
 
-    let customers = JSON.parse(localStorage.getItem('customers')) || [];
-    const newId = getNewCustomerId();
+    // ===================================
+    // EVENT LISTENERS
+    // ===================================
+    $(document).ready(function() {
+        loadProductsForCashier();
+        loadCustomersForPiutang();
 
-    const newCustomer = {
-        id: newId,
-        nama: name,
-        telp: phone,
-        saldoPiutang: 0
-    };
-    
-    customers.push(newCustomer);
-    localStorage.setItem('customers', JSON.stringify(customers));
-    
-    alert(`Pelanggan ${name} berhasil disimpan!`);
-    
-    // Muat ulang daftar pelanggan dan pilih pelanggan yang baru dibuat
-    loadCustomersForPiutang();
-    $('#piutang-customer-id').val(newId);
-    
-    // Reset input
-    $('#new-customer-name').val('');
-    $('#new-customer-phone').val('');
-}
+        $('#search-product').on('keyup', filterProducts);
+        $('#product-list-container').on('click', '.product-item-card', handleAddToCart);
+        $('#cart-items-list').on('click', '.btn-remove-cart-item', handleRemoveFromCart);
+        $('#btn-clear-cart').on('click', clearCart);
+        
+        $('#btn-show-payment').on('click', function() {
+            $('#input-bayar').val(''); // Reset input bayar
+            $('#text-kembalian').text('Rp 0').removeClass('text-danger text-success');
+            $('#payment-modal').modal('show');
+        });
 
+        $('#confirm-add-to-cart').on('click', confirmAddToCart);
+        
+        $('#btn-plus-qty').on('click', () => $('#inputQty').val(parseInt($('#inputQty').val()) + 1));
+        $('#btn-minus-qty').on('click', () => {
+            let qty = parseInt($('#inputQty').val());
+            if(qty > 1) $('#inputQty').val(qty - 1);
+        });
+
+        $('input[name="payment-method"]').on('change', function() {
+            if ($(this).val() === 'Piutang') {
+                $('#piutang-customer-select').removeClass('d-none');
+                $('#cash-payment-area').hide();
+            } else {
+                $('#piutang-customer-select').addClass('d-none');
+                $('#cash-payment-area').show();
+                $('#input-bayar').focus();
+            }
+        });
+
+        // Hitung Kembalian Otomatis
+        $('#input-bayar').on('keyup input', function() {
+            const bayar = parseInt($(this).val()) || 0;
+            let totalText = $('#modal-total-payment').text();
+            let total = parseInt(totalText.replace(/[^0-9]/g, '')) || 0; // Hapus karakter non-angka
+            const kembalian = bayar - total;
+
+            if (kembalian >= 0) {
+                $('#text-kembalian').text(formatRupiah(kembalian)).removeClass('text-danger').addClass('text-success');
+            } else {
+                $('#text-kembalian').text(formatRupiah(kembalian)).removeClass('text-success').addClass('text-danger');
+            }
+        });
+
+        $('#btn-save-new-customer').on('click', handleSaveNewCustomer);
+        
+        // Gunakan .off() untuk mencegah double confirm
+        $('#btn-finish-transaction').off('click').on('click', handleFinishTransaction);
+    });
 // ===================================
 // FUNGSI UNTUK HALAMAN LAPORAN (laporan.html)
 // ===================================

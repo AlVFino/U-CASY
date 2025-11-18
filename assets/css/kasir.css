@@ -26,6 +26,55 @@
   box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2) !important;
 }
 
+#struk-container {
+        display: none; /* Sembunyikan di tampilan web biasa */
+    }
+
+    @media print {
+        /* Sembunyikan semua elemen web kasir */
+        body * {
+            visibility: hidden;
+        }
+        
+        /* Tampilkan hanya area struk */
+        #struk-container, #struk-container * {
+            visibility: visible;
+        }
+
+        #struk-container {
+            display: block !important;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%; /* Atur lebar kertas, misal 58mm atau 100% */
+            font-family: 'Courier New', Courier, monospace; /* Font ala struk */
+            font-size: 12px;
+            color: black;
+        }
+
+        /* Reset margin halaman cetak */
+        @page {
+            margin: 0;
+            size: auto;
+        }
+
+        .struk-header, .struk-footer {
+            text-align: center;
+        }
+        .struk-divider {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+        }
+        .struk-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .struk-total {
+            font-weight: bold;
+            font-size: 14px;
+        }
+    }
+
 /* === RESPONSIVE === */
 /* Laptop (≤1199px) */
 @media (max-width: 1199px) {

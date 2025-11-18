@@ -1,0 +1,125 @@
+.btn-custom {
+    background-color: #ff0000 !important;
+    border: 2px solid #ff0000 !important;
+    color: white !important;
+    box-shadow: 0 1px 3px #ff0000;
+}
+
+.btn-custom:hover {
+    background-color: #f5f5f5 !important;
+    border: 2px solid #ff0000 !important;
+    color: #ff0000 !important;
+    font-weight: 500 !important;
+    transition: all 0.25s ease !important;
+}
+
+.text-gray-300 {
+  color: #dddfeb !important;
+}
+.text-gray-800 {
+  color: #5a5c69 !important;
+}
+
+/* === RESPONSIVE === */
+/* Laptop */
+@media (max-width: 1199px) {
+  .card .row {
+    flex-direction: column-reverse !important;
+    text-align: center;
+  }
+
+  .card .col-auto {
+    margin-bottom: 10px;
+  }
+
+  .card .text-xs {
+    font-size: 0.85rem !important;
+  }
+
+  .card .h5 {
+    font-size: 1.15rem !important;
+  }
+}
+
+/* Tablet (≤991px) */
+@media (max-width: 991px) {
+  .row {
+    justify-content: center !important;
+  }
+
+  .row .col-md-4 {
+    flex: 0 0 34% !important;
+    max-width: 33% !important;
+  }
+
+  .row .text-xs {
+    font-size: 0.9rem !important;
+  }
+
+  .row .h5 {
+    font-size: 1.1rem !important;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 1rem !important;
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+  }
+
+  .navbar-nav .nav-item {
+    margin-right: 9px !important;
+  }
+
+  .navbar-brand {
+    font-size: 1.1rem !important;
+  }
+
+  .navbar-brand img {
+    height: 35px !important;
+  }
+
+  #logout-button {
+    padding: 5px 7px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Mobile Medium (≤767px) */
+@media (max-width: 767px) {
+  .row .col-md-4 {
+    flex: 0 0 34% !important;
+    max-width: 33% !important;
+  }
+
+  .row .text-xs {
+    font-size: 0.7rem !important;
+  }
+
+  .row .h5 {
+    font-size: 0.9rem !important;
+  }
+
+  #logout-button {
+    margin-top: 12px !important;
+  }
+}
+
+/* MObile Small (≤480px) */
+@media (max-width: 480px) {
+  .row {
+    justify-content: center !important;
+  }
+
+  .row .col-md-4 {
+    flex: 0 0 50% !important;
+    max-width: 33.3% !important;
+  }
+
+  .row .text-xs {
+    font-size: 7.9px !important;
+  }
+
+  .row .h5 {
+    font-size: 0.8rem !important;
+  }
+}

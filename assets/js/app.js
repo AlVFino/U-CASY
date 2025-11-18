@@ -168,12 +168,12 @@ function loadProductTable() {
         
         const row = `
             <tr>
-                <td>${product.id}</td>
+                <td class="text-center">${product.id}</td>
                 <td>${product.nama}</td>
-                <td><span class="badge bg-${product.tipe === 'jasa' ? 'success' : 'info'}">${product.tipe.toUpperCase()}</span></td>
-                <td>${product.tipe === 'barang' ? stockDisplay : 'N/A'}</td> <td>${formatRupiah(product.modal)}</td>
+                <td class="text-center"><span class="badge bg-${product.tipe === 'jasa' ? 'success' : 'info'}">${product.tipe.toUpperCase()}</span></td>
+                <td class="text-center">${product.tipe === 'barang' ? stockDisplay : 'N/A'}</td> <td>${formatRupiah(product.modal)}</td>
                 <td>${formatRupiah(product.harga)}</td>
-                <td>
+                <td class="text-center">
                     <button class="btn btn-warning btn-sm btn-edit" data-id="${product.id}">
                         <i class="bi bi-pencil-fill"></i>
                     </button>
@@ -341,7 +341,7 @@ function loadProductsForCashier() {
                  data-harga="${product.harga}" 
                  data-modal="${product.modal}" 
                  data-tipe="${product.tipe}"
-                 data-catatan=""> <div class="card h-100 product-card shadow-sm border-${product.tipe === 'jasa' ? 'success' : 'info'}">
+                 data-catatan=""> <div class="card h-100 product-card shadow-sm border-${product.tipe === 'jasa' ? 'info' : 'info'}">
                     <div class="card-body text-center d-flex flex-column justify-content-center p-2">
                         <h5 class="card-title fs-6 mb-1">${product.nama}</h5>
                         <p class="card-text fw-bold text-primary mb-0">${formatRupiah(product.harga)}</p>
@@ -1179,4 +1179,3 @@ $(document).ready(function() {
         $('#btn-pay-debt').on('click', handleDebtPayment);
     }
 });
-

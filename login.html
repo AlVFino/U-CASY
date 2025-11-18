@@ -1,48 +1,136 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - UPJ Casir System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-
-    <div class="container">
-        <div class="row justify-content-center align-items-center" style="height: 100vh;">
-            <div class="col-md-5">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body p-5">
-                        <h2 class="text-center fw-bold mb-1">UPJ - CASIR SYSTEM</h2>
-                        <p class="text-center text-muted mb-4">Unit Produksi Jurusan</p>
-                        
-                        <div id="login-alert" class="alert alert-danger d-none" role="alert">
-                            Username atau password salah!
-                        </div>
-
-                        <form id="login-form">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" required>
-                            </div>
-                            <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg">Login</button>
-                            </div>
-                        </form>
-                    </div>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login - UPJ Cashier System</title>
+        <link rel="icon" href="./assets/img/logo_kasir.png" type="image/png">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+        <link href="assets/css/login.css" rel="stylesheet">
+    </head>
+    <body class="bg-light">
+        <div class="container">
+            
+            <div class="left-box bg-primary">
+                <!-- <div class="logo">
+                    <img src="assets/img/logo_upj.png" alt="Logo UPJ">
+                    <img src="assets/img/logo_kasir.png" alt="Logo Kasir">
+                </div> -->
+                <div class="teks">
+                    <h2>Hello, Welcome!</h2>
+                    <h3>UPJ - CASHIER SYSTEM</h3>
+                    <p>Unit Produksi Jurusan</p>
                 </div>
+                
+                <p class="hak-cip">&copy; UPJ 2025 | All rights reserved.</p>
+            </div>
+            
+            <div class="right-box">
+            <div class="top">
+                <h2 class="text-success">Login</h2>
+                <h3 class="text-success">U-CASY</h3>
+            </div>
+
+            <div class="middle">
+                <form id="login-form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="username" placeholder="Username" required>
+                        <span class="input-group-text position-absolute">
+                            <i class="bi bi-person"></i>
+                        </span>
+                    </div>
+                    <div class="form-group input-group-password">
+                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                        <span class="input-group-text position-absolute">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <i class="bi bi-eye-slash input-icon-right" id="togglePassword"></i>
+                    </div>
+
+                    <div id="login-alert" class="teks-danger d-none" role="alert">
+                        Username atau password salah!
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bagian Button Login -->
+            <div class="bottom">
+                <button type="submit" form="login-form" class="btn btn-success btn-lg w-100">Login</button>
             </div>
         </div>
     </div>
+    
+    <script>
+        document.querySelectorAll(".form-control").forEach(input => {
+            input.addEventListener("focus", () => {
+                input.classList.add("clicked");
+            });
+        });
+
+        const passwordInput = document.getElementById("password");
+        const togglePw = document.getElementById("togglePassword");
+
+        togglePw.addEventListener("click", (e) => {
+            e.preventDefault(); /* ADD: cegah input kehilangan fokus */
+
+            const wrapper = passwordInput.closest(".input-group-password");
+
+            if (passwordInput.type === "password") {
+                // Buka password
+                passwordInput.type = "text";
+                togglePw.classList.remove("bi-eye-slash");
+                togglePw.classList.add("bi-eye");
+
+                wrapper.classList.add("active-eye"); /* ADD */
+
+            } else {
+                // Tutup password
+                passwordInput.type = "password";
+                togglePw.classList.remove("bi-eye");
+                togglePw.classList.add("bi-eye-slash");
+
+                /* ADD — cek fokus */
+                if (!passwordInput.matches(":focus")) {
+                    wrapper.classList.remove("active-eye");
+                } else {
+                    wrapper.classList.add("active-eye");
+                }
+            }
+        });
+
+        passwordInput.addEventListener("input", () => {
+            if (passwordInput.value.length > 0) {
+                togglePw.style.display = "block";
+            } else {
+                togglePw.style.display = "none";
+                togglePw.classList.add("bi-eye-slash");
+                togglePw.classList.remove("bi-eye");
+                passwordInput.type = "password";
+
+                passwordInput.closest(".input-group-password").classList.remove("active-eye"); /* ADD */
+            }
+        });
+
+        togglePw.style.display = "none";
+
+        /* ADD — fokus masuk, tetap primary */
+        passwordInput.addEventListener("focus", () => {
+            passwordInput.closest(".input-group-password").classList.add("active-eye");
+        });
+
+        /* ADD — fokus keluar, hilangkan primary hanya jika eye tertutup */
+        passwordInput.addEventListener("blur", () => {
+            if (passwordInput.type === "password") {
+                passwordInput.closest(".input-group-password").classList.remove("active-eye");
+            }
+        });
+    </script>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="assets/js/auth.js"></script>
+
 </body>
 </html>

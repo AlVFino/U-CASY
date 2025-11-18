@@ -1,0 +1,112 @@
+.btn-custom {
+    background-color: #ff0000 !important;
+    border: 2px solid #ff0000 !important;
+    color: white !important;
+    box-shadow: 0 1px 3px #ff0000;
+}
+
+.btn-custom:hover {
+    background-color: #f5f5f5 !important;
+    border: 2px solid #ff0000 !important;
+    color: #ff0000 !important;
+    font-weight: 500 !important;
+    transition: all 0.25s ease !important;
+}
+
+#customer-table th:last-child,
+#customer-table td:last-child {
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+
+/* === RESPONSIVE === */
+/* Laptop (≤1199px) */
+@media (max-width: 1199px) {
+  .navbar-brand {
+    font-size: 1.2rem !important;
+  }
+}
+
+/* Tablet (≤991px) */
+@media (max-width: 991px) {
+  .col-lg-4,
+  .col-lg-8 {
+    margin-bottom: 20px !important;
+  }
+
+  h1.h3 {
+    font-size: 1.25rem !important;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 1rem !important;
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+  }
+
+  .navbar-nav .nav-item {
+    margin-right: 9px !important;
+  }
+
+  .navbar-brand {
+    font-size: 1.1rem !important;
+  }
+
+  .navbar-brand img {
+    height: 35px !important;
+  }
+
+  #logout-button {
+    padding: 5px 7px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Mobile Medium (≤767px) */
+@media (max-width: 767px) {
+  #customer-table th,
+  #customer-table td {
+    font-size: 0.9rem;
+  }
+
+  .navbar-brand {
+    font-size: 1rem !important;
+  }
+
+  #logout-button {
+    margin-top: 12px !important;
+  }
+}
+
+/* Mobile Small (≤480px) */
+@media (max-width: 480px) {
+  #customer-form .mb-3,
+  #payment-form-section .mb-3 {
+    margin-bottom: 18px !important;
+  }
+
+  .card-header h6 {
+    text-align: center;
+    font-size: 1rem !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #customer-table {
+    min-width: 650px !important;
+  }
+
+  #customer-table th,
+  #customer-table td {
+    font-size: 0.82rem !important;
+    white-space: nowrap !important;
+  }
+
+  #customer-table td:last-child {
+    text-align: center !important;
+  }
+}

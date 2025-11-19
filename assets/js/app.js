@@ -198,11 +198,10 @@ function handleProductFormSubmit(event) {
     const modalValue = $('#product-modal').val();
     const priceValue = $('#product-price').val();
     
-    // START PERBAIKAN: Ambil nilai Stok dari input
-    const stockValue = $('#product-stock').gitval(); 
-    // END PERBAIKAN: Ambil nilai Stok dari input
+    // Ambil nilai Stok dari input
+    const stockValue = $('#product-stock').val(); 
 
-    // Validasi Input Kosong (ditambah stok jika tipe barang)
+    // Validasi Input Kosong
     if (!productName || !modalValue || !priceValue || (productType === 'barang' && stockValue === '')) {
         alert('Mohon lengkapi semua data!');
         return;
@@ -211,17 +210,15 @@ function handleProductFormSubmit(event) {
     // Konversi ke integer
     const productModal = parseInt(modalValue);
     const productPrice = parseInt(priceValue);
-    // START PERBAIKAN: Konversi Stok
     const productStock = productType === 'barang' ? parseInt(stockValue) : 0;
-    // END PERBAIKAN: Konversi Stok
-    
+
     // Validasi NaN
     if (isNaN(productModal) || isNaN(productPrice) || isNaN(productStock)) {
         alert('Harga Modal, Harga Jual, dan Stok harus berupa angka yang valid!');
         return;
     }
 
-    // Validasi Bisnis: Harga Jual & Stok
+    // Validasi Bisnis
     if (productPrice < productModal) {
         alert('Harga Jual tidak boleh lebih kecil dari Harga Modal!');
         return;
@@ -231,6 +228,16 @@ function handleProductFormSubmit(event) {
         return;
     }
 
+    // 🔥 Jika semua sudah valid → tampilkan konfirmasi
+    const isConfirmed = confirm(
+        productId 
+        ? 'Apakah yakin ingin memperbarui data produk ini?' 
+        : 'Apakah yakin ingin menambahkan produk baru?'
+    );
+
+    if (!isConfirmed) return;
+
+    // Lanjut proses simpan ke localStorage
     let products = JSON.parse(localStorage.getItem('products')) || [];
 
     const newProductData = {
@@ -238,7 +245,7 @@ function handleProductFormSubmit(event) {
         tipe: productType,
         modal: productModal,
         harga: productPrice,
-        stok: productStock // Simpan nilai stok yang diambil dari input
+        stok: productStock
     };
 
     if (productId) {
@@ -265,6 +272,7 @@ function handleProductFormSubmit(event) {
     cancelProductEdit(); 
     loadProductTable();
 }
+
 
 // Fungsi untuk mengisi form saat tombol "Edit" diklik
 function handleEditProduct(event) {

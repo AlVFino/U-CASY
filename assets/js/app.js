@@ -199,7 +199,7 @@ function handleProductFormSubmit(event) {
     const priceValue = $('#product-price').val();
     
     // START PERBAIKAN: Ambil nilai Stok dari input
-    const stockValue = $('#product-stock').val(); 
+    const stockValue = $('#product-stock').gitval(); 
     // END PERBAIKAN: Ambil nilai Stok dari input
 
     // Validasi Input Kosong (ditambah stok jika tipe barang)

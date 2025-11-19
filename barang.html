@@ -165,32 +165,21 @@
     <script src="assets/js/app.js"></script>
     
     <script>
-        $(document).ready(function() {
-            // Muat daftar produk saat halaman dibuka
-            loadProductTable();
+$(document).ready(function() {
+    // 1. Muat data saat halaman pertama kali dibuka
+    loadProductTable();
 
-            // Tangani submit form (Tambah/Update)
-            $('#product-form').on('submit', handleProductFormSubmit);
+    // 2. Hubungkan filter dengan fungsi muat ulang tabel
+    $('#filter-name').on('keyup', loadProductTable);
+    $('#filter-type').on('change', loadProductTable);
 
-            // Tangani klik tombol "Batal Edit"
-            $('#cancel-edit-button').on('click', cancelProductEdit);
+    // 3. Hubungkan tombol CRUD
+    $('#product-table-body').on('click', '.btn-edit', handleEditProduct);
+    $('#product-table-body').on('click', '.btn-delete', handleDeleteProduct);
+    $('#product-form').on('submit', handleProductFormSubmit);
+    $('#cancel-edit-button').on('click', cancelProductEdit);
+});
 
-            // Tangani klik tombol "Edit" dan "Delete" di tabel (event delegation)
-            $('#product-table-body').on('click', '.btn-edit', handleEditProduct);
-            $('#product-table-body').on('click', '.btn-delete', handleDeleteProduct);
-
-            // Tangani perubahan pada input nama dan select tipe (Filter)
-            $('#filter-name, #filter-type').on('input change', function() {
-                loadProductTable();
-            });
-
-            // Tangani tombol Reset Filter
-            $('#reset-filter-button').on('click', function() {
-                $('#filter-name').val('');
-                $('#filter-type').val('');
-                loadProductTable(); // Muat ulang tabel setelah reset
-            });
-        });
     </script>
 </body>
 </html>

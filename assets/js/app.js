@@ -313,362 +313,625 @@ function handleDeleteProduct(event) {
 }
 
 // ===================================
-    // LOGIKA UTAMA HALAMAN KASIR
-    // ===================================
-    
-    // Pastikan fungsi formatRupiah ada. Jika tidak ada di app.js, kita buat fallback
-    if (typeof formatRupiah !== 'function') {
-        function formatRupiah(angka) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+// FUNGSI UNTUK HALAMAN KASIR (kasir.html)
+// ===================================
+
+// --- FUNGSI BARU UNTUK MEMBUAT ID BARU ---
+function getNewCustomerId() {
+    const customers = JSON.parse(localStorage.getItem('customers')) || [];
+    return customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
+}
+
+// Muat daftar produk ke halaman kasir (MODIFIKASI: Tambah Stok)
+function loadProductsForCashier() {
+    const products = JSON.parse(localStorage.getItem('products')) || [];
+    const container = $('#product-list-container');
+    container.empty();
+
+    if (products.length === 0) {
+        container.html('<p class="text-center">Belum ada produk. Silakan tambah di halaman Data Barang/Jasa.</p>');
+        return;
+    }
+
+    products.forEach(product => {
+        // Tampilkan Stok hanya untuk tipe barang
+        const stockInfo = product.tipe === 'barang' ? 
+            `<p class="card-text text-secondary mb-0">Stok: ${product.stok}</p>` : 
+            `<p class="card-text text-secondary mb-0">Jasa</p>`;
+
+        const card = `
+            <div class="col-md-4 col-6 mb-3 product-item-card" 
+                data-id="${product.id}" 
+                data-nama="${product.nama}" 
+                data-harga="${product.harga}" 
+                data-modal="${product.modal}" 
+                data-tipe="${product.tipe}"
+                data-stok="${product.stok || 0}"
+                data-catatan=""> 
+                <div class="card h-100 product-card shadow-sm border-${product.tipe === 'jasa' ? 'info' : 'success'}">
+                    <div class="card-body text-center d-flex flex-column justify-content-center p-2">
+                        <h5 class="card-title fs-6 mb-1">${product.nama}</h5>
+                        <p class="card-text fw-bold text-primary mb-0">${formatRupiah(product.harga)}</p>
+                        ${stockInfo}
+                    </div>
+                </div>
+            </div>
+        `;
+        container.append(card);
+    });
+}
+
+// Muat daftar pelanggan ke select Piutang di Modal Kasir
+function loadCustomersForPiutang() {
+    const customers = JSON.parse(localStorage.getItem('customers')) || [];
+    const select = $('#piutang-customer-id');
+    select.find('option:not(:first)').remove();
+
+    if (customers.length === 0) {
+        select.append(`<option value="" disabled>Tidak ada pelanggan Piutang</option>`);
+    } else {
+        customers.forEach(cust => {
+            select.append(`<option value="${cust.id}">${cust.nama} ${cust.saldoPiutang > 0 ? `(Hutang: ${formatRupiah(cust.saldoPiutang)})` : ''}</option>`);
+        });
+    }
+}
+
+// Fungsi filter produk di halaman kasir (Sama)
+function filterProducts() {
+    const query = $('#search-product').val().toLowerCase();
+    $('.product-item-card').each(function() {
+        const nama = $(this).data('nama').toLowerCase();
+        if (nama.includes(query)) {
+            $(this).show();
+        } else {
+            $(this).hide();
         }
-    }
+    });
+}
 
-    // Variable global keranjang
+// Fungsi untuk merender (menampilkan) isi keranjang (MODIFIKASI: Tambah Simpan Cart ke LS)
+function renderCart() {
+    const cartList = $('#cart-items-list');
+    cartList.empty();
     
+    let total = 0;
 
-    // 1. FUNGSI HELPER & LOAD DATA
-    function getNewCustomerId() {
-        const customers = JSON.parse(localStorage.getItem('customers')) || [];
-        return customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1;
+    if (cart.length === 0) {
+        cartList.append('<li class="list-group-item text-center text-muted">Keranjang kosong</li>');
+        $('#btn-show-payment').prop('disabled', true);
+    } else {
+        cart.forEach(item => {
+            const itemTotal = item.harga * item.qty;
+            total += itemTotal;
+            
+            // Tampilkan catatan jika ada
+            const noteDisplay = item.catatan ? `<small class="text-warning d-block">Catatan: ${item.catatan}</small>` : '';
+
+            const itemElement = `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="my-0">${item.nama}</h6>
+                        <small class="text-muted">${formatRupiah(item.harga)} x ${item.qty}</small>
+                        ${noteDisplay} </div>
+                    <span class="text-muted">${formatRupiah(itemTotal)}</span>
+                    <button class="btn btn-sm btn-outline-danger btn-remove-cart-item" data-id="${item.id}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </li>
+            `;
+            cartList.append(itemElement);
+        });
+        $('#btn-show-payment').prop('disabled', false);
+    }
+    
+    $('#cart-total').text(formatRupiah(total));
+    $('#modal-total-payment').text(formatRupiah(total));
+
+    // Simpan Keranjang Sementara ke Local Storage
+    localStorage.setItem('tempCart', JSON.stringify(cart));
+}
+
+// Fungsi saat produk di-klik (HANYA MENGISI MODAL QTY) (MODIFIKASI: Tambah Stok Info)
+function handleAddToCart(event) {
+    const card = $(event.currentTarget);
+    const productId = card.data('id');
+    const productName = card.data('nama');
+    const productStock = card.data('stok'); // Ambil Stok
+    const productType = card.data('tipe');
+    
+    // Cari apakah item sudah ada di keranjang
+    const existingItem = cart.find(item => item.id == productId);
+
+    $('#selectedProductId').val(productId);
+    $('#modal-product-name').text(productName);
+    
+    // Tampilkan informasi stok di dalam modal QTY
+    const stockMsg = productType === 'barang' ? `(Stok Tersedia: ${productStock})` : '(Jasa)';
+    $('#qtyModalLabel').html(`<i class="bi bi-input-cursor me-2"></i> Tentukan Jumlah Beli <small class="text-warning">${stockMsg}</small>`);
+
+    // Isi Qty dengan nilai 1 jika belum ada, atau Qty saat ini jika sudah ada
+    $('#inputQty').val(existingItem ? existingItem.qty : 1).data('max-qty', productStock); 
+    
+    // Isi Catatan
+    $('#inputNote').val(existingItem && existingItem.catatan ? existingItem.catatan : '');
+    
+    // Batasi input qty jika tipe barang
+    $('#inputQty').attr('max', productType === 'barang' ? productStock : '');
+    
+    $('#qtyModal').modal('show');
+}
+
+// Fungsi untuk menghapus item dari keranjang (Sama)
+function handleRemoveFromCart(event) {
+    const id = $(event.currentTarget).data('id');
+    const itemIndex = cart.findIndex(item => item.id == id);
+
+    if (itemIndex > -1) {
+        // Hapus langsung semua item, tidak perlu dikurangi 1
+        cart.splice(itemIndex, 1);
+    }
+    renderCart();
+}
+
+// Fungsi untuk memproses Qty dan Catatan dari modal ke keranjang (MODIFIKASI: Validasi Stok)
+function confirmAddToCart() {
+    const productId = parseInt($('#selectedProductId').val());
+    const qty = parseInt($('#inputQty').val());
+    const note = $('#inputNote').val().trim();
+    
+    const allProducts = JSON.parse(localStorage.getItem('products')) || [];
+    const product = allProducts.find(p => p.id === productId);
+
+    if (isNaN(qty) || qty < 1) {
+        alert("Jumlah harus minimal 1.");
+        return;
     }
 
-    function loadProductsForCashier() {
-        const products = JSON.parse(localStorage.getItem('products')) || [];
-        const container = $('#product-list-container');
-        container.empty();
+    if (!product) {
+        alert("Produk tidak ditemukan.");
+        $('#qtyModal').modal('hide');
+        return;
+    }
 
-        if (products.length === 0) {
-            container.html('<p class="text-center">Belum ada produk.</p>');
+    // VALIDASI STOK BARU
+    if (product.tipe === 'barang' && qty > product.stok) {
+        alert(`Stok ${product.nama} tidak cukup! Stok tersedia: ${product.stok}, Diminta: ${qty}`);
+        return; // Batalkan penambahan ke keranjang
+    }
+
+    const itemIndex = cart.findIndex(item => item.id === productId);
+
+    if (itemIndex > -1) {
+        cart[itemIndex].qty = qty;
+        cart[itemIndex].catatan = note;
+    } else {
+        cart.push({
+            id: product.id,
+            nama: product.nama,
+            harga: product.harga,
+            modal: product.modal,
+            tipe: product.tipe,
+            qty: qty,
+            catatan: note
+        });
+    }
+
+    if (qty === 0) {
+        cart = cart.filter(item => item.id !== productId);
+    }
+
+    renderCart();
+    $('#qtyModal').modal('hide');
+}
+
+// Fungsi untuk mengosongkan keranjang (Sama)
+function clearCart() {
+    if (confirm('Anda yakin ingin mengosongkan keranjang?')) {
+        cart = [];
+        renderCart();
+        localStorage.removeItem('tempCart');
+    }
+}
+
+// ===================================
+// FUNGSI UNTUK MENCETAK STRUK
+// ===================================
+function printReceiptHTML(transaction) {
+    let customerInfo = '';
+    
+    // Informasi Pelanggan untuk Piutang
+    if (transaction.metode === 'Piutang') {
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const customer = customers.find(c => c.id === transaction.customerId);
+        
+        customerInfo = `
+            <div class="info-row">
+                <span class="label">Pelanggan:</span>
+                <span class="value">${customer ? customer.nama : 'N/A'}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Jatuh Tempo:</span>
+                <span class="value">${transaction.dueDate ? new Date(transaction.dueDate).toLocaleDateString('id-ID') : 'N/A'}</span>
+            </div>
+        `;
+    }
+
+    // Bangun konten HTML Struk
+    let itemsHTML = transaction.items.map(item => {
+        const itemTotal = item.harga * item.qty;
+        const noteDisplay = item.catatan ? `<div class="note-display">Catatan: ${item.catatan}</div>` : '';
+        return `
+            <div class="item-line">
+                <div class="item-name">${item.nama}</div>
+                <div class="item-details">
+                    <span class="qty">${item.qty}x</span>
+                    <span class="price">${formatRupiah(item.harga)}</span>
+                    <span class="total-price">${formatRupiah(itemTotal)}</span>
+                </div>
+                ${noteDisplay}
+            </div>
+        `;
+    }).join('');
+
+    let paymentDetailsHTML = '';
+    if (transaction.metode === 'Cash') {
+        paymentDetailsHTML = `
+            <div class="separator-dashed"></div>
+            <div class="total-row">
+                <span class="label">BAYAR:</span>
+                <span class="value paid">${formatRupiah(transaction.paid)}</span>
+            </div>
+            <div class="total-row change">
+                <span class="label">KEMBALIAN:</span>
+                <span class="value change-value">${formatRupiah(transaction.change)}</span>
+            </div>
+        `;
+    }
+
+    const receiptHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Struk Transaksi</title>
+            <style>
+                body { font-family: 'Consolas', monospace; font-size: 11px; margin: 0; padding: 10px; width: 300px; }
+                .receipt { width: 100%; max-width: 300px; margin: 0 auto; }
+                .center { text-align: center; }
+                .header, .footer { margin-bottom: 10px; }
+                .separator { border-top: 1px solid #000; margin: 5px 0; }
+                .separator-dashed { border-top: 1px dashed #000; margin: 5px 0; }
+                .item-line { display: flex; flex-wrap: wrap; margin-bottom: 3px; }
+                .item-name { width: 100%; font-weight: bold; }
+                .item-details { width: 100%; display: flex; justify-content: space-between; padding-left: 10px;}
+                .qty { width: 15%; }
+                .price { width: 45%; text-align: left; }
+                .total-price { width: 40%; text-align: right; font-weight: bold; }
+                .total-row { display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; }
+                .total-row .label { font-weight: bold; }
+                .total-row .value { font-weight: bold; }
+                .change .value { color: #d9534f; }
+                .info-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+                .note-display { font-size: 10px; color: #555; padding-left: 10px; }
+
+                /* Media query untuk cetak */
+                @media print {
+                    body { font-size: 10px; width: 300px; margin: 0; }
+                    .total-row.change .value { color: #000; } /* Hilangkan warna merah saat cetak */
+                }
+            </style>
+        </head>
+        <body>
+            <div class="receipt">
+                <div class="center header">
+                    <h3 style="margin: 0;">U-CASY</h3>
+                    <p style="margin: 0; font-size: 10px;">UPJ Cashier System</p>
+                </div>
+                <div class="separator"></div>
+                
+                <div class="info-row">
+                    <span class="label">TRX ID:</span>
+                    <span class="value">${transaction.id}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Waktu:</span>
+                    <span class="value">${new Date(transaction.tanggal).toLocaleString('id-ID')}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Metode:</span>
+                    <span class="value">${transaction.metode}</span>
+                </div>
+                ${customerInfo}
+                
+                <div class="separator-dashed"></div>
+                ${itemsHTML}
+                
+                <div class="separator-dashed"></div>
+                <div class="total-row" style="font-size: 16px;">
+                    <span class="label">GRAND TOTAL:</span>
+                    <span class="value total">${formatRupiah(transaction.total)}</span>
+                </div>
+                
+                ${paymentDetailsHTML}
+                
+                <div class="separator"></div>
+                <div class="center footer">
+                    <p style="margin: 0;">Terima kasih atas kunjungan Anda!</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    // Cara yang lebih reliable untuk memicu cetak: membuka jendela baru
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(receiptHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    // Jika Anda ingin menutup jendela setelah print:
+    // printWindow.onafterprint = function() { printWindow.close(); }; 
+}
+
+
+// Fungsi untuk menyelesaikan transaksi (MODIFIKASI: Implementasi Cash & Piutang)
+function handleFinishTransaction() {
+    if (cart.length === 0) {
+        alert("Keranjang kosong!");
+        return;
+    }
+
+    const paymentMethod = $('input[name="payment-method"]:checked').val();
+    let customerId = null;
+    let customerName = 'Umum/Cash';
+    let paidAmount = 0;
+    let changeAmount = 0;
+    let dueDate = null;
+    let total = 0;
+    let totalProfit = 0;
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+
+    // Hitung Total dan Profit (Harus dihitung ulang di sini untuk memastikan)
+    let isStockAdequate = true;
+    const itemsToUpdate = [];
+    cart.forEach(cartItem => {
+        const product = products.find(p => p.id === cartItem.id);
+        if (product) {
+            total += cartItem.harga * cartItem.qty;
+            totalProfit += (cartItem.harga - cartItem.modal) * cartItem.qty;
+            
+            if (product.tipe === 'barang') {
+                if (product.stok < cartItem.qty) {
+                    isStockAdequate = false;
+                    alert(`Stok ${product.nama} tidak cukup! Stok tersedia: ${product.stok}, Diminta: ${cartItem.qty}`);
+                }
+                itemsToUpdate.push({ id: product.id, qty: cartItem.qty });
+            }
+        }
+    });
+
+    if (!isStockAdequate) {
+        return; // Batalkan transaksi jika stok tidak cukup
+    }
+    
+    // --- LOGIKA PEMBAYARAN TUNAI ---
+    if (paymentMethod === 'Cash') {
+        paidAmount = parseInt($('#input-cash-paid').val()) || 0;
+        changeAmount = paidAmount - total;
+        
+        if (paidAmount < total) {
+            alert(`Jumlah bayar kurang! Total tagihan: ${formatRupiah(total)}. Uang dibayarkan: ${formatRupiah(paidAmount)}.`);
             return;
         }
-
-        products.forEach(product => {
-            const card = `
-                <div class="col-md-4 col-6 mb-3 product-item-card" 
-                     data-id="${product.id}" 
-                     data-nama="${product.nama}" 
-                     data-harga="${product.harga}" 
-                     data-modal="${product.modal}" 
-                     data-tipe="${product.tipe}">
-                    <div class="card h-100 product-card shadow-sm border-info">
-                        <div class="card-body text-center d-flex flex-column justify-content-center p-2">
-                            <h5 class="card-title fs-6 mb-1">${product.nama}</h5>
-                            <p class="card-text fw-bold text-primary mb-0">${formatRupiah(product.harga)}</p>
-                        </div>
-                    </div>
-                </div>`;
-            container.append(card);
-        });
-    }
-
-    function loadCustomersForPiutang() {
+        
+    // --- LOGIKA PIUTANG ---
+    } else if (paymentMethod === 'Piutang') {
+        customerId = $('#piutang-customer-id').val();
+        dueDate = $('#piutang-due-date').val();
+        
+        if (!customerId || !dueDate) {
+            alert('Anda memilih Hutang, mohon pilih Pelanggan dan tentukan Tanggal Jatuh Tempo!');
+            return;
+        }
+        
+        customerId = parseInt(customerId);
         const customers = JSON.parse(localStorage.getItem('customers')) || [];
-        const select = $('#piutang-customer-id');
-        select.find('option:not(:first)').remove();
-        customers.forEach(cust => {
-            select.append(`<option value="${cust.id}">${cust.nama}</option>`);
-        });
+        const selectedCustomer = customers.find(c => c.id === customerId);
+        customerName = selectedCustomer ? selectedCustomer.nama : 'Pelanggan Piutang Tidak Ditemukan';
     }
 
-    function filterProducts() {
-        const query = $('#search-product').val().toLowerCase();
-        $('.product-item-card').each(function() {
-            const nama = $(this).data('nama').toLowerCase();
-            $(this).toggle(nama.includes(query));
-        });
-    }
-
-    // 2. FUNGSI KERANJANG
-    function renderCart() {
-        const cartList = $('#cart-items-list');
-        cartList.empty();
-        let total = 0;
-
-        if (cart.length === 0) {
-            cartList.append('<li class="list-group-item text-center text-muted">Keranjang kosong</li>');
-            $('#btn-show-payment').prop('disabled', true);
-        } else {
-            cart.forEach(item => {
-                const itemTotal = item.harga * item.qty;
-                total += itemTotal;
-                const noteDisplay = item.catatan ? `<small class="text-warning d-block">Catatan: ${item.catatan}</small>` : '';
-
-                cartList.append(`
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="my-0">${item.nama}</h6>
-                            <small class="text-muted">${formatRupiah(item.harga)} x ${item.qty}</small>
-                            ${noteDisplay}
-                        </div>
-                        <span class="text-muted">${formatRupiah(itemTotal)}</span>
-                        <button class="btn btn-sm btn-outline-danger btn-remove-cart-item" data-id="${item.id}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </li>
-                `);
-            });
-            $('#btn-show-payment').prop('disabled', false);
+    // 2. Kurangi Stok
+    itemsToUpdate.forEach(item => {
+        const productIndex = products.findIndex(p => p.id === item.id);
+        if (productIndex !== -1) {
+             products[productIndex].stok -= item.qty;
         }
-        $('#cart-total').text(formatRupiah(total));
-        $('#modal-total-payment').text(formatRupiah(total));
-    }
-
-    function handleAddToCart(event) {
-        const card = $(event.currentTarget);
-        const productId = card.data('id');
-        const existingItem = cart.find(item => item.id == productId);
-
-        $('#selectedProductId').val(productId);
-        $('#modal-product-name').text(card.data('nama'));
-        $('#inputQty').val(existingItem ? existingItem.qty : 1);
-        $('#inputNote').val(existingItem ? existingItem.catatan : '');
-        $('#qtyModal').modal('show');
-    }
-
-    function confirmAddToCart() {
-        const productId = parseInt($('#selectedProductId').val());
-        const qty = parseInt($('#inputQty').val());
-        const note = $('#inputNote').val().trim();
-
-        if (qty < 1) return alert("Jumlah minimal 1");
-
-        const allProducts = JSON.parse(localStorage.getItem('products')) || [];
-        const product = allProducts.find(p => p.id === productId);
-        if (!product) return;
-
-        const itemIndex = cart.findIndex(item => item.id === productId);
-        if (itemIndex > -1) {
-            cart[itemIndex].qty = qty;
-            cart[itemIndex].catatan = note;
-        } else {
-            cart.push({ ...product, qty: qty, catatan: note });
-        }
-        renderCart();
-        $('#qtyModal').modal('hide');
-    }
-
-    function handleRemoveFromCart(event) {
-        const id = $(event.currentTarget).data('id');
-        cart = cart.filter(item => item.id != id);
-        renderCart();
-    }
-
-    function clearCart() {
-        if (confirm('Kosongkan keranjang?')) {
-            cart = [];
-            renderCart();
-        }
-    }
-
-    // 3. FUNGSI TRANSAKSI & PRINT
-    function printTransaction(transaction) {
-        const date = new Date(transaction.tanggal).toLocaleString('id-ID');
-        $('#struk-tanggal').text(date);
-        $('#struk-id').text(transaction.id);
-        $('#struk-metode').text(transaction.metode);
-        $('#struk-total-bayar').text(formatRupiah(transaction.total));
-
-        const listContainer = $('#struk-items-list');
-        listContainer.empty();
-        transaction.items.forEach(item => {
-            listContainer.append(`
-                <div style="margin-bottom: 4px;">
-                    <div>${item.nama}</div>
-                    <div class="d-flex justify-content-between">
-                        <small>${item.qty} x ${formatRupiah(item.harga)}</small>
-                        <span>${formatRupiah(item.qty * item.harga)}</span>
-                    </div>
-                    ${item.catatan ? `<small style="font-style:italic;">(${item.catatan})</small>` : ''}
-                </div>
-            `);
-        });
-
-        if (transaction.customerId) {
-            const customers = JSON.parse(localStorage.getItem('customers')) || [];
-            const cust = customers.find(c => c.id == transaction.customerId);
-            $('#struk-pelanggan').text(cust ? cust.nama : 'Umum');
-            $('#struk-pelanggan-row').show();
-        } else {
-            $('#struk-pelanggan-row').hide();
-        }
-
-        if (transaction.metode === 'Cash') {
-            $('#struk-cash-info').show();
-            $('#struk-bayar').text(formatRupiah(transaction.bayar || 0));
-            $('#struk-kembali').text(formatRupiah(transaction.kembalian || 0));
-        } else {
-            $('#struk-cash-info').hide();
-        }
-
-        window.print();
-    }
-
-    function handleFinishTransaction() {
-        if (cart.length === 0) return;
-
-        const paymentMethod = $('input[name="payment-method"]:checked').val();
-        let customerId = null;
-        
-        // Hitung Total
-        let total = 0;
-        let totalProfit = 0;
-        let products = JSON.parse(localStorage.getItem('products')) || [];
-        
-        cart.forEach(item => {
-            total += item.harga * item.qty;
-            totalProfit += (item.harga - item.modal) * item.qty;
-        });
-
-        // Validasi Cash
-        let nominalBayar = 0;
-        let kembalian = 0;
-        if (paymentMethod === 'Cash') {
-            nominalBayar = parseInt($('#input-bayar').val()) || 0;
-            if (nominalBayar < total) {
-                alert(`Uang kurang! Total: ${formatRupiah(total)}, Bayar: ${formatRupiah(nominalBayar)}`);
-                return;
-            }
-            kembalian = nominalBayar - total;
-        }
-
-        // Validasi Piutang
-        if (paymentMethod === 'Piutang') {
-            customerId = $('#piutang-customer-id').val();
-            if (!customerId) {
-                alert('Pilih pelanggan untuk Piutang!');
-                return;
-            }
-            customerId = parseInt(customerId);
-        }
-
-        // Cek Stok
-        let isStockAdequate = true;
-        const itemsToUpdate = [];
-        cart.forEach(cartItem => {
-            const productIndex = products.findIndex(p => p.id === cartItem.id);
-            if (productIndex !== -1 && products[productIndex].tipe === 'barang') {
-                if (products[productIndex].stok < cartItem.qty) {
-                    isStockAdequate = false;
-                    alert(`Stok ${products[productIndex].nama} tidak cukup!`);
-                }
-                itemsToUpdate.push({ index: productIndex, qty: cartItem.qty });
-            }
-        });
-
-        if (!isStockAdequate) return;
-
-        // Eksekusi
-        itemsToUpdate.forEach(item => products[item.index].stok -= item.qty);
-
-        const newTransaction = {
-            id: `TRX-${new Date().getTime()}`,
-            tanggal: new Date().toISOString(),
-            metode: paymentMethod,
-            items: cart,
-            total: total,
-            totalProfit: totalProfit,
-            customerId: customerId,
-            bayar: nominalBayar,
-            kembalian: kembalian
-        };
-
-        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-        transactions.push(newTransaction);
-        localStorage.setItem('products', JSON.stringify(products));
-        localStorage.setItem('transactions', JSON.stringify(transactions));
-
-        if (paymentMethod === 'Piutang' && customerId) {
-            let customers = JSON.parse(localStorage.getItem('customers')) || [];
-            const idx = customers.findIndex(c => c.id === customerId);
-            if (idx !== -1) {
-                customers[idx].saldoPiutang += total;
-                localStorage.setItem('customers', JSON.stringify(customers));
-            }
-        }
-
-        $('#payment-modal').modal('hide');
-
-        // Confirm Print & Reload
-        if (confirm(`Transaksi Berhasil!\nKembalian: ${formatRupiah(kembalian)}\n\nCetak Struk?`)) {
-            printTransaction(newTransaction);
-            setTimeout(() => window.location.reload(), 500);
-        } else {
-            window.location.reload();
-        }
-    }
-
-    function handleSaveNewCustomer() {
-        const name = $('#new-customer-name').val().trim();
-        const phone = $('#new-customer-phone').val().trim();
-        if (!name || !phone) return alert('Isi nama & telepon');
-
-        let customers = JSON.parse(localStorage.getItem('customers')) || [];
-        const newId = getNewCustomerId();
-        customers.push({ id: newId, nama: name, telp: phone, saldoPiutang: 0 });
-        localStorage.setItem('customers', JSON.stringify(customers));
-        
-        alert('Pelanggan disimpan');
-        loadCustomersForPiutang();
-        $('#piutang-customer-id').val(newId);
-        $('#new-customer-name').val(''); $('#new-customer-phone').val('');
-    }
-
-    // ===================================
-    // EVENT LISTENERS
-    // ===================================
-    $(document).ready(function() {
-        loadProductsForCashier();
-        loadCustomersForPiutang();
-
-        $('#search-product').on('keyup', filterProducts);
-        $('#product-list-container').on('click', '.product-item-card', handleAddToCart);
-        $('#cart-items-list').on('click', '.btn-remove-cart-item', handleRemoveFromCart);
-        $('#btn-clear-cart').on('click', clearCart);
-        
-        $('#btn-show-payment').on('click', function() {
-            $('#input-bayar').val(''); // Reset input bayar
-            $('#text-kembalian').text('Rp 0').removeClass('text-danger text-success');
-            $('#payment-modal').modal('show');
-        });
-
-        $('#confirm-add-to-cart').on('click', confirmAddToCart);
-        
-        $('#btn-plus-qty').on('click', () => $('#inputQty').val(parseInt($('#inputQty').val()) + 1));
-        $('#btn-minus-qty').on('click', () => {
-            let qty = parseInt($('#inputQty').val());
-            if(qty > 1) $('#inputQty').val(qty - 1);
-        });
-
-        $('input[name="payment-method"]').on('change', function() {
-            if ($(this).val() === 'Piutang') {
-                $('#piutang-customer-select').removeClass('d-none');
-                $('#cash-payment-area').hide();
-            } else {
-                $('#piutang-customer-select').addClass('d-none');
-                $('#cash-payment-area').show();
-                $('#input-bayar').focus();
-            }
-        });
-
-        // Hitung Kembalian Otomatis
-        $('#input-bayar').on('keyup input', function() {
-            const bayar = parseInt($(this).val()) || 0;
-            let totalText = $('#modal-total-payment').text();
-            let total = parseInt(totalText.replace(/[^0-9]/g, '')) || 0; // Hapus karakter non-angka
-            const kembalian = bayar - total;
-
-            if (kembalian >= 0) {
-                $('#text-kembalian').text(formatRupiah(kembalian)).removeClass('text-danger').addClass('text-success');
-            } else {
-                $('#text-kembalian').text(formatRupiah(kembalian)).removeClass('text-success').addClass('text-danger');
-            }
-        });
-
-        $('#btn-save-new-customer').on('click', handleSaveNewCustomer);
-        
-        // Gunakan .off() untuk mencegah double confirm
-        $('#btn-finish-transaction').off('click').on('click', handleFinishTransaction);
     });
+
+    // ===================================
+    // ✍️ BUAT TRANSAKSI BARU ✍️
+    // ===================================
+    
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    
+    const newTransaction = {
+        id: `TRX-${new Date().getTime()}`,
+        tanggal: new Date().toISOString(),
+        metode: paymentMethod,
+        items: cart.map(item => ({ 
+            id: item.id,
+            nama: item.nama,
+            harga: item.harga,
+            modal: item.modal,
+            qty: item.qty,
+            catatan: item.catatan || '' 
+        })),
+        total: total,
+        totalProfit: totalProfit,
+        customerId: customerId || null,
+        // Detail Pembayaran Tambahan
+        paid: paymentMethod === 'Cash' ? paidAmount : 0,
+        change: paymentMethod === 'Cash' ? changeAmount : 0,
+        dueDate: paymentMethod === 'Piutang' ? dueDate : null,
+        customerName: customerName // Tambahkan nama customer untuk Piutang
+    };
+
+    transactions.push(newTransaction);
+    
+    // Simpan semua data yang berubah
+    localStorage.setItem('products', JSON.stringify(products)); // Update Stok Produk
+    localStorage.setItem('transactions', JSON.stringify(transactions)); // Simpan Transaksi Baru
+
+    // --- UPDATE SALDO PIUTANG PELANGGAN ---
+    if (paymentMethod === 'Piutang' && customerId) {
+        let customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const customerIndex = customers.findIndex(c => c.id === customerId);
+
+        if (customerIndex !== -1) {
+            customers[customerIndex].saldoPiutang = (customers[customerIndex].saldoPiutang || 0) + total;
+            localStorage.setItem('customers', JSON.stringify(customers));
+        }
+    }
+    // --- AKHIR UPDATE SALDO PIUTANG ---
+
+    // Cetak Struk (PANGGIL FUNGSI BARU)
+    printReceiptHTML(newTransaction);
+
+    // Reset UI dan notifikasi
+    cart = [];
+    localStorage.removeItem('tempCart');
+    $('#payment-modal').modal('hide');
+    
+    alert(`Transaksi ${newTransaction.id} berhasil disimpan! Halaman akan dimuat ulang untuk me-refresh data dan stok.`);
+    
+    // ⚡ REFRESH HALAMAN ⚡
+    window.location.reload(); 
+}
+
+// Fungsi untuk menyimpan pelanggan baru (untuk Piutang) (Sama)
+function handleSaveNewCustomer() {
+    const name = $('#new-customer-name').val().trim();
+    const phone = $('#new-customer-phone').val().trim();
+
+    if (!name || !phone) {
+        alert('Nama dan Nomor Telepon pelanggan baru wajib diisi.');
+        return;
+    }
+
+    let customers = JSON.parse(localStorage.getItem('customers')) || [];
+    const newId = getNewCustomerId();
+
+    const newCustomer = {
+        id: newId,
+        nama: name,
+        telp: phone,
+        saldoPiutang: 0
+    };
+    
+    customers.push(newCustomer);
+    localStorage.setItem('customers', JSON.stringify(customers));
+    
+    alert(`Pelanggan ${name} berhasil disimpan!`);
+    
+    // Muat ulang daftar pelanggan dan pilih pelanggan yang baru dibuat
+    loadCustomersForPiutang();
+    $('#piutang-customer-id').val(newId);
+    
+    // Reset input
+    $('#new-customer-name').val('');
+    $('#new-customer-phone').val('');
+}
+
+// ===================================
+// EVENT LISTENERS TAMBAHAN
+// ===================================
+$(document).ready(function() {
+    // ... Event listeners yang sudah ada ...
+
+    // Tampilkan modal pembayaran (Perbarui modal title dengan total)
+    $('#btn-show-payment').on('click', function() {
+        const totalValue = parseFloat($('#cart-total').text().replace(/[^0-9,-]+/g, "").replace(',', '.')); // Ambil nilai total numerik
+        
+        // Atur tampilan Cash Payment Form
+        $('#cash-total-display').text($('#cart-total').text());
+        $('#input-cash-paid').val(totalValue).attr('min', totalValue); // Set minimal dan default ke total
+        $('#cash-change-display').text(formatRupiah(0));
+        
+        // Pastikan form yang benar ditampilkan default: Cash
+        $('#cash-payment-form').show();
+        $('#piutang-customer-select').addClass('d-none');
+        $('#pay-cash').prop('checked', true); // Pastikan Cash terpilih
+
+        $('#payment-modal').modal('show');
+    });
+
+    // Tampilkan/Sembunyikan form pembayaran berdasarkan metode
+    $('input[name="payment-method"]').on('change', function() {
+        if ($(this).val() === 'Piutang') {
+            $('#piutang-customer-select').removeClass('d-none');
+            $('#cash-payment-form').hide();
+        } else {
+            $('#piutang-customer-select').addClass('d-none');
+            $('#cash-payment-form').show();
+            $('#piutang-customer-id').val('');
+        }
+    });
+
+    // Hitung Kembalian saat input Jumlah Bayar diubah
+    $('#input-cash-paid').on('input', function() {
+        const totalRupiah = $('#cart-total').text().replace(/[^0-9,-]+/g, "");
+        const total = parseFloat(totalRupiah.replace(',', '.'));
+        const paid = parseInt($(this).val()) || 0;
+        const change = paid - total;
+        
+        $('#cash-change-display').text(formatRupiah(change));
+        
+        // Ubah warna kembalian
+        if (change >= 0) {
+            $('#cash-change-display').removeClass('text-danger').addClass('text-success');
+        } else {
+            $('#cash-change-display').removeClass('text-success').addClass('text-danger');
+        }
+    });
+    
+    // ... Event listeners lainnya ...
+
+    // Event listener untuk membatasi input QTY berdasarkan stok
+    $('#inputQty').on('input', function() {
+        const qty = parseInt($(this).val());
+        const maxQty = parseInt($(this).data('max-qty'));
+        const productId = parseInt($('#selectedProductId').val());
+        const product = JSON.parse(localStorage.getItem('products')).find(p => p.id === productId);
+
+        if (product && product.tipe === 'barang') {
+            if (qty > maxQty) {
+                $(this).val(maxQty);
+                alert(`Jumlah maksimal pembelian adalah stok yang tersedia (${maxQty})!`);
+            }
+        }
+    });
+
+    // Event listener untuk tombol Plus dan Minus di modal QTY (MODIFIKASI: Validasi Stok)
+    $('#btn-plus-qty').on('click', function() {
+        const qtyInput = $('#inputQty');
+        const currentQty = parseInt(qtyInput.val());
+        const maxQty = parseInt(qtyInput.data('max-qty'));
+        
+        const productId = parseInt($('#selectedProductId').val());
+        const product = JSON.parse(localStorage.getItem('products')).find(p => p.id === productId);
+
+        if (product && product.tipe === 'barang') {
+             if (currentQty < maxQty) {
+                qtyInput.val(currentQty + 1);
+            } else {
+                 alert(`Stok sudah maksimal (${maxQty})!`);
+            }
+        } else {
+            qtyInput.val(currentQty + 1);
+        }
+    });
+    // ... event listener $('#btn-minus-qty') sama seperti sebelumnya ...
+});
+
 // ===================================
 // FUNGSI UNTUK HALAMAN LAPORAN (laporan.html)
 // ===================================
@@ -963,6 +1226,9 @@ function exportToExcel() {
 
 function loadCustomerData() {
     const customers = JSON.parse(localStorage.getItem('customers')) || [];
+    // 1. Ambil data transaksi untuk mencari jatuh tempo
+    const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    
     const tableBody = $('#customer-table-body');
     const selectPelanggan = $('#pay-customer-id');
     
@@ -970,18 +1236,58 @@ function loadCustomerData() {
     selectPelanggan.find('option:not(:first)').remove();
 
     if (customers.length === 0) {
-        tableBody.append('<tr><td colspan="4" class="text-center">Belum ada data pelanggan internal.</td></tr>');
+        // PERHATIKAN: colspan diubah menjadi 5 karena ada kolom baru
+        tableBody.append('<tr><td colspan="5" class="text-center">Belum ada data pelanggan internal.</td></tr>');
         return;
     }
 
     customers.forEach(cust => {
+        // ========================================================
+        // 2. LOGIKA MENCARI TANGGAL JATUH TEMPO TERAKHIR
+        // ========================================================
+        let lastDueDate = 'N/A';
+        let isOverdue = false;
+        
+        // Filter transaksi Piutang yang terkait dengan pelanggan ini DAN belum lunas
+        const customerDebts = transactions.filter(trx => 
+            trx.customerId == cust.id && 
+            trx.metode === 'Piutang' && 
+            !trx.isPaidOff
+        );
+        
+        // Cari transaksi piutang TERBARU (berdasarkan tanggal transaksi, agar yang diutang terakhir muncul)
+        if (customerDebts.length > 0) {
+            customerDebts.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal)); // Urutkan terbaru ke terlama
+            const latestDebtTrx = customerDebts[0];
+            
+            if (latestDebtTrx.dueDate) {
+                const dueDate = new Date(latestDebtTrx.dueDate);
+                lastDueDate = dueDate.toLocaleDateString('id-ID');
+
+                // Cek apakah sudah jatuh tempo
+                const today = new Date();
+                // Set waktu menjadi 00:00:00 untuk perbandingan tanggal yang akurat
+                today.setHours(0, 0, 0, 0); 
+                dueDate.setHours(0, 0, 0, 0); 
+                
+                if (dueDate < today) {
+                    isOverdue = true;
+                }
+            }
+        }
+        
+        // Tentukan kelas CSS untuk jatuh tempo
+        const dueDateClass = isOverdue && cust.saldoPiutang > 0 ? 'text-danger fw-bold' : 'text-secondary';
+        const dueDateDisplay = `<td class="${dueDateClass}">${lastDueDate}</td>`;
+        // ========================================================
+
         // Tambahkan ke tabel
         const row = `
             <tr>
                 <td>${cust.nama}</td>
                 <td>${cust.kontak}</td>
                 <td class="fw-bold text-${cust.saldoPiutang > 0 ? 'danger' : 'success'}">${formatRupiah(cust.saldoPiutang)}</td>
-                <td>
+                ${dueDateDisplay} <td>
                     <button class="btn btn-danger btn-sm btn-delete-cust" data-id="${cust.id}">
                         <i class="bi bi-trash-fill"></i> Hapus
                     </button>

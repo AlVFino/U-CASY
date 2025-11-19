@@ -181,3 +181,83 @@
     font-size: 0.95rem !important;
   }
 }
+
+/* Styling Umum untuk Modal Pembayaran */
+#payment-modal .modal-content {
+    border-radius: 15px; /* Sudut lebih membulat */
+    overflow: hidden; /* Memastikan header yang rounded terlihat bagus */
+}
+
+/* Header Modal */
+#payment-modal .modal-header {
+    background-color: #3f51b5 !important; /* Warna primer yang lebih tegas */
+    border-bottom: none;
+}
+
+#payment-modal .modal-title {
+    font-size: 1.5rem;
+}
+
+#payment-modal #modal-total-payment {
+    /* Menekankan total pembayaran */
+    font-size: 1.75rem; 
+    letter-spacing: 1px;
+}
+
+/* Styling Pilihan Metode Pembayaran */
+#payment-modal .btn-outline-primary,
+#payment-modal .btn-outline-danger {
+    /* Membuat tombol pemilihan metode lebih besar dan tebal */
+    height: 70px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: all 0.2s ease-in-out;
+}
+
+#payment-modal .btn-outline-primary:hover,
+#payment-modal .btn-outline-danger:hover {
+    transform: translateY(-2px); /* Efek hover ringan */
+}
+
+/* Styling Formulir Cash */
+#cash-payment-form {
+    border-color: #4CAF50 !important; /* Hijau untuk Cash */
+    background-color: #f1f8f0;
+    transition: all 0.3s;
+}
+
+#cash-payment-form .text-primary {
+    color: #3f51b5 !important; /* Konsistensi warna */
+}
+
+#input-cash-paid {
+    border: 2px solid #4CAF50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.3); /* Shadow fokus */
+}
+
+/* Styling Formulir Piutang */
+#piutang-customer-select {
+    border-color: #F44336 !important; /* Merah untuk Piutang */
+    background-color: #fff0f0;
+    transition: all 0.3s;
+}
+
+/* Menonjolkan tombol Simpan Pelanggan Baru */
+#btn-save-new-customer {
+    background-color: #00bcd4; /* Warna info yang lebih cerah */
+    border: none;
+    font-weight: bold;
+}
+
+/* Footer Modal */
+#payment-modal .modal-footer {
+    border-top: none;
+    padding: 15px 25px;
+}
+
+#btn-finish-transaction {
+    font-size: 1.1rem;
+    padding: 10px 25px;
+}

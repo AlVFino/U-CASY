@@ -204,7 +204,7 @@ function handleProductFormSubmit(event) {
 
     // Validasi Input Kosong (ditambah stok jika tipe barang)
     if (!productName || !modalValue || !priceValue || (productType === 'barang' && stockValue === '')) {
-        alert('Mohon lengkapi semua data wajib!');
+        alert('Mohon lengkapi semua data!');
         return;
     }
 

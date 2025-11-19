@@ -187,38 +187,47 @@ function loadProductTable() {
     });
 }
 
-// Fungsi untuk menangani submit form (Tambah atau Update)
 function handleProductFormSubmit(event) {
     event.preventDefault();
-    
-    // Ambil nilai dari input
+
+    // ================================
+    // 1. AMBIL NILAI INPUT SEKALI SAJA
+    // ================================
     const productId = $('#product-id').val();
     const productName = $('#product-name').val().trim();
     const productType = $('input[name="product-type"]:checked').val();
     const modalValue = $('#product-modal').val();
     const priceValue = $('#product-price').val();
-    
-    // Ambil nilai Stok dari input
-    const stockValue = $('#product-stock').val(); 
+    const stockValue = $('#product-stock').val();
 
-    // Validasi Input Kosong
-    if (!productName || !modalValue || !priceValue || (productType === 'barang' && stockValue === '')) {
-        alert('Mohon lengkapi semua data!');
+    // ================================
+    // 2. VALIDASI INPUT KOSONG
+    // ================================
+    if (!productName || !modalValue || !priceValue || 
+        (productType === 'barang' && stockValue === '')) 
+    {
+        alert('Apakah Yakin Menyimpannya?');
         return;
     }
 
-    // Konversi ke integer
+    // ================================
+    // 3. KONVERSI ANGKA
+    // ================================
     const productModal = parseInt(modalValue);
     const productPrice = parseInt(priceValue);
     const productStock = productType === 'barang' ? parseInt(stockValue) : 0;
 
-    // Validasi NaN
+    // ================================
+    // 4. VALIDASI ANGKA
+    // ================================
     if (isNaN(productModal) || isNaN(productPrice) || isNaN(productStock)) {
         alert('Harga Modal, Harga Jual, dan Stok harus berupa angka yang valid!');
         return;
     }
 
-    // Validasi Bisnis
+    // ================================
+    // 5. VALIDASI BISNIS
+    // ================================
     if (productPrice < productModal) {
         alert('Harga Jual tidak boleh lebih kecil dari Harga Modal!');
         return;
@@ -228,19 +237,12 @@ function handleProductFormSubmit(event) {
         return;
     }
 
-    // 🔥 Jika semua sudah valid → tampilkan konfirmasi
-    const isConfirmed = confirm(
-        productId 
-        ? 'Apakah yakin ingin memperbarui data produk ini?' 
-        : 'Apakah yakin ingin menambahkan produk baru?'
-    );
-
-    if (!isConfirmed) return;
-
-    // Lanjut proses simpan ke localStorage
-    let products = JSON.parse(localStorage.getItem('products')) || [];
-
-    const newProductData = {
+    // ================================
+    // 6. SIMPAN SEMUA DATA KE OBJEK FINAL
+    // (agar tidak hilang setelah confirm)
+    // ================================
+    const finalData = {
+        id: productId ? parseInt(productId) : null,
         nama: productName,
         tipe: productType,
         modal: productModal,
@@ -248,31 +250,42 @@ function handleProductFormSubmit(event) {
         stok: productStock
     };
 
-    if (productId) {
-        // Mode Update
-        const index = products.findIndex(p => p.id == productId);
+    // ================================
+    // 7. KONFIRMASI SEKALI SAJA
+    // ================================
+    const confirmAdd = confirm(
+        finalData.id
+            ? 'Apakah yakin ingin memperbarui produk?'
+            : 'Apakah yakin ingin menambahkan produk baru?'
+    );
+    if (!confirmAdd) return;
+
+    // ================================
+    // 8. PROSES SIMPAN LOCAL STORAGE
+    // ================================
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+
+    if (finalData.id) {
+        // MODE UPDATE
+        const index = products.findIndex(p => p.id === finalData.id);
         if (index !== -1) {
-            products[index] = { 
-                id: parseInt(productId), 
-                ...newProductData 
-            };
+            products[index] = finalData;
         }
     } else {
-        // Mode Tambah Baru
+        // MODE TAMBAH
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-        products.push({
-            id: newId,
-            ...newProductData
-        });
+        finalData.id = newId;
+        products.push(finalData);
     }
 
     localStorage.setItem('products', JSON.stringify(products));
 
-    // Reset UI
-    cancelProductEdit(); 
+    // ================================
+    // 9. RESET UI
+    // ================================
+    cancelProductEdit();
     loadProductTable();
 }
-
 
 // Fungsi untuk mengisi form saat tombol "Edit" diklik
 function handleEditProduct(event) {

@@ -24,8 +24,8 @@ U-CASY adalah aplikasi kasir berbasis HTML, CSS, dan JavaScript yang digunakan u
 **Penggunaan**
 1. Buka /pages/index.html
 2. Navigasikan halaman melalui navbar:
-  - Dashboard
-  - Kasir
-  - Barang/Jasa
-  - Pelanggan (Piutang)
-  - Laporan
+    - Dashboard
+    - Kasir
+     - Barang/Jasa
+    - Pelanggan (Piutang)
+    - Laporan
